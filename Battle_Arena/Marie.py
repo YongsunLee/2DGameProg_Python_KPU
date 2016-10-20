@@ -9,6 +9,8 @@ class Marie:
     ATTACK00_L, ATTACK01_L, CALL00_L, CALL01_L, ATTACK02_L = 8, 9, 10, 11, 12
 
     # 프레임 출력함수
+    # 키업에서 상태 변화가 아닌
+    # 여기서 상태 변화를 넣는것 프레임이 끝날때 상태를 변경.
     def frame_handle_stand(self):
         self.stand_frame = (self.stand_frame + 1) % 10
     def frame_handle_walk(self):
@@ -60,14 +62,15 @@ class Marie:
     def frame_handle_attack00(self):
         self.attack00_frame = (self.attack00_frame + 1) % 7
     def frame_handle_attack01(self):
-        self.attack01_frame = (self.attack01_frame + 1) % 10
-        self.attack01_tiemr = (self.attack01_tiemr + 0.8)
-        if self.attack01_tiemr >= 3.0:
-            self.attack01_tiemr = 0.0
+        if self.attack01_keydown == True:
+            self.attack01_frame = (self.attack01_frame + 1) % 10
+            self.attack01_tiemr = (self.attack01_tiemr + 0.8)
+            if self.attack01_tiemr >= 3.0:
+                self.attack01_tiemr = 0.0
+            if self.attack02_frame == 10:
+                self.attack01_keydown = False
     def frame_handle_attack02(self):
         self.attack02_frame = (self.attack02_frame + 1) % 11
-        if self.attack02_frame == 4 or self.attack02_frame == 9:
-            self.attack02_yframe = (self.attack02_yframe + 1) % 3
         if self.attack01_tiemr >= 1.0:
             self.attack01_tiemr = 0.0
     def frame_handle_call00(self):
@@ -183,6 +186,9 @@ class Marie:
         # 상태 체크
         self.frame_ = self.STAND_L
         self.jump_count = 0
+
+        # 키 눌린거 확인
+        self.attack01_keydown = False
 
         # 더블 입력 함수
         self.attack01_tiemr = 0.0

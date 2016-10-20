@@ -80,24 +80,24 @@ def handle_events():
             elif event.key == SDLK_DOWN:
                 player.frame_ = player.DOWN_L
             elif event.key == SDLK_RIGHT:
-                if player.run_timer >= 1.0 and player.run_timer <= 3.0:
+                if player.run_timer >= 1.0:
                     player.frame_ = player.RUN_L
                 else:
                     player.frame_ = player.WALK_L
             elif event.key == SDLK_LEFT:
-                if player.backstep_timer >= 1.0 and player.backstep_timer <= 1.8:
+                if player.backstep_timer >= 1.0:
                     player.frame_ = player.BACKSTEP_L
                 else:
                     player.frame_ = player.BACKWALK_L
             if event.key == SDLK_a:
-                if player.attack01_tiemr >= 1.0 and player.attack01_tiemr <= 3.0:
+                if player.attack01_tiemr >= 1.0:
                     player.frame_ = player.ATTACK02_L
                 else:
                     player.frame_ = player.ATTACK01_L
             elif event.key == SDLK_s:
                 player.frame_ = player.ATTACK00_L
             elif event.key == SDLK_d:
-                if player.call_timer >= 1.0 and player.call_timer <= 3.0:
+                if player.call_timer >= 1.0:
                     player.frame_ = player.CALL01_L
                 else:
                     player.frame_ = player.CALL00_L
@@ -107,7 +107,7 @@ def handle_events():
 
 def update():
     player.update()
-    delay(0.075)
+    delay(0.04)
     pass
 
 
