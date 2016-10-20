@@ -47,31 +47,21 @@ def handle_events():
 
             # 키 땠을때
         elif event.type == SDL_KEYUP:
-            if event.key == SDLK_RIGHT:
-                player.frame_ = player.STAND_L
-                player.walk_frame = 0
-            elif event.key == SDLK_LEFT:
-                player.frame_ = player.STAND_L
-                player.backwalk_frame = 0
-            elif event.key == SDLK_UP:
-                player.frame_ = player.STAND_L
-                player.jump_frame = 0
+            if event.key == SDLK_LEFT:
+                if player.frame_ == player.BACKWALK_L and player.BACKSTEP_L:
+                    player.frame_ = player.STAND_L
+                    player.backwalk_frame = 0
+                    player.backstep_frame = 0
+                player.L_keydown_jump = False
+            elif event.key == SDLK_RIGHT:
+                if player.frame_ == player.WALK_L or player.frame_ ==  player.RUN_L:
+                    player.frame_ = player.STAND_L
+                    player.walk_frame = 0
+                    player.run_frame = 0
+                player.R_keydown_jump = False
             elif event.key == SDLK_DOWN:
                 player.frame_ = player.STAND_L
                 player.down_frame = 0
-            elif event.key == SDLK_LSHIFT:
-                player.frame_ = player.STAND_L
-            if event.key == SDLK_a:
-                player.frame_ = player.STAND_L
-                player.attack01_frame = 0
-                player.attack02_frame = 0
-            elif event.key == SDLK_s:
-                player.frame_ = player.STAND_L
-                player.attack00_frame = 0
-            elif event.key == SDLK_d:
-                player.frame_ = player.STAND_L
-                player.call00_frame = 0
-                player.call01_frame = 0
 
         # 눌렀을 때
         elif event.type == SDL_KEYDOWN:
@@ -80,15 +70,19 @@ def handle_events():
             elif event.key == SDLK_DOWN:
                 player.frame_ = player.DOWN_L
             elif event.key == SDLK_RIGHT:
-                if player.run_timer >= 1.0:
-                    player.frame_ = player.RUN_L
-                else:
-                    player.frame_ = player.WALK_L
+                if player.y == player.default_y:
+                    if player.run_timer >= 1.0:
+                        player.frame_ = player.RUN_L
+                    else:
+                        player.frame_ = player.WALK_L
+                player.R_keydown_jump = True
             elif event.key == SDLK_LEFT:
-                if player.backstep_timer >= 1.0:
-                    player.frame_ = player.BACKSTEP_L
-                else:
-                    player.frame_ = player.BACKWALK_L
+                if player.y == player.default_y:
+                    if player.backstep_timer >= 1.0:
+                        player.frame_ = player.BACKSTEP_L
+                    else:
+                        player.frame_ = player.BACKWALK_L
+                player.L_keydown_jump = True
             if event.key == SDLK_a:
                 if player.attack01_tiemr >= 1.0:
                     player.frame_ = player.ATTACK02_L
