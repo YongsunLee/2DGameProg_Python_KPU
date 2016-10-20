@@ -14,7 +14,7 @@ logo_load = 0.0
 
 def enter():
     global image
-    image = load_image('kpu_logo.png')
+    image = load_image('WarpLog_1280.png')
 
 
 def exit():
@@ -29,16 +29,15 @@ def update():
     image.opacify(logo_load)
     print(logo_load)
     if logo_load < 1.0:
-        logo_load += 0.01
+        logo_load += 0.05
     else:
         logo_load = 1.0
 
     if(logo_time > 1.0):
         logo_time = 0
-        #game_framework.quit()
         game_framework.push_state(title_state)
-    delay(0.01)
-    logo_time += 0.01
+    delay(0.04)
+    logo_time += 0.05
 
 
 def draw():

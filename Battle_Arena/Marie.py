@@ -21,7 +21,7 @@ class Marie:
             self.walk_frame = (self.walk_frame + 1) % 8
         self.x += (self.dir * 18)
         self.run_timer = (self.run_timer + 0.8)
-        if self.run_timer >= 3.0:
+        if self.run_timer >= 2.0:
             self.run_timer = 0.0
     def frame_handle_backwalk(self):
         if self.walk_frame == 11:
@@ -34,33 +34,35 @@ class Marie:
         if self.backstep_timer >= 3.0:
             self.backstep_timer = 0.0
     def frame_handle_run(self):
-        if self.run_frame == 10:
-            self.run_frame = (self.run_frame + 1)
-            self.run_frame = 2
-        else:
-            self.run_frame = (self.run_frame + 1) % 11
+        self.run_frame = (self.run_frame + 1) % self.run_count
+        if self.run_count == 11:
+            self.run_count = 9
         self.x += (self.dir * 30)
-        #if self.run_timer >= 1.0:
-        #    self.run_timer = 0.0
+        if self.run_timer >= 1.0:
+            self.run_timer = 0.0
     def frame_handle_jump(self):
-
         if self.jump_count == 1:
             self.jump_frame = (self.jump_frame - 1)
             self.y -= 20
             if self.R_keydown_jump:
-                self.x += self.dir * 10
+                self.x += self.dir * 15
             elif self.L_keydown_jump:
-                self.x -= self.dir * 10
+                self.x -= self.dir * 15
             if self.jump_frame == 0:
                 self.jump_count = 0
-                self.frame_ = self.STAND_L
+                if self.R_keydown_jump:
+                    self.frame_ = self.WALK_L
+                elif self.L_keydown_jump:
+                    self.frame_ = self.BACKWALK_L
+                else:
+                    self.frame_ = self.STAND_L
         else:
             self.jump_frame = (self.jump_frame + 1)
             self.y += 20
             if self.R_keydown_jump:
-                self.x += self.dir * 10
+                self.x += self.dir * 15
             elif self.L_keydown_jump:
-                self.x -= self.dir * 10
+                self.x -= self.dir * 15
             if self.jump_frame == 8:
                 self.jump_count = 1
     def frame_handle_down(self):
@@ -209,6 +211,7 @@ class Marie:
         self.frame_ = self.STAND_L
         self.jump_count = 0
         self.default_y = 180
+        self.run_count = 11
 
         # 키 눌린거 확인
         self.L_keydown_jump  = False

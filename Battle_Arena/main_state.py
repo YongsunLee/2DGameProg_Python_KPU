@@ -84,17 +84,20 @@ def handle_events():
                         player.frame_ = player.BACKWALK_L
                 player.L_keydown_jump = True
             if event.key == SDLK_a:
-                if player.attack01_tiemr >= 1.0:
-                    player.frame_ = player.ATTACK02_L
-                else:
-                    player.frame_ = player.ATTACK01_L
+                if player.y == player.default_y:
+                    if player.attack01_tiemr >= 1.0:
+                        player.frame_ = player.ATTACK02_L
+                    else:
+                        player.frame_ = player.ATTACK01_L
             elif event.key == SDLK_s:
-                player.frame_ = player.ATTACK00_L
+                if player.y == player.default_y:
+                    player.frame_ = player.ATTACK00_L
             elif event.key == SDLK_d:
-                if player.call_timer >= 1.0:
-                    player.frame_ = player.CALL01_L
-                else:
-                    player.frame_ = player.CALL00_L
+                if player.y == player.default_y:
+                    if player.call_timer >= 1.0:
+                        player.frame_ = player.CALL01_L
+                    else:
+                        player.frame_ = player.CALL00_L
             elif event.key == SDLK_ESCAPE:
                 game_framework.change_state(title_state)
 
