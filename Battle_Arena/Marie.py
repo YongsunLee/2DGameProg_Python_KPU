@@ -11,9 +11,9 @@ class Marie:
     # 프레임 출력함수
     # 키업에서 상태 변화가 아닌
     # 여기서 상태 변화를 넣는것 프레임이 끝날때 상태를 변경.
-    def frame_handle_stand(self):
+    def handle_frame_stand(self):
         self.stand_frame = (self.stand_frame + 1) % 10
-    def frame_handle_walk(self):
+    def handle_frame_walk(self):
         if self.walk_frame == 7:
             self.walk_frame = (self.walk_frame + 1) % 8
             self.walk_frame = 2
@@ -23,7 +23,7 @@ class Marie:
         self.run_timer = (self.run_timer + 0.8)
         if self.run_timer >= 2.0:
             self.run_timer = 0.0
-    def frame_handle_backwalk(self):
+    def handle_frame_backwalk(self):
         if self.walk_frame == 11:
             self.backwalk_frame = (self.backwalk_frame + 1) % 12
             self.backwalk_frame = 2
@@ -33,14 +33,14 @@ class Marie:
         self.backstep_timer = (self.backstep_timer + 0.8)
         if self.backstep_timer >= 3.0:
             self.backstep_timer = 0.0
-    def frame_handle_run(self):
+    def handle_frame_run(self):
         self.run_frame = (self.run_frame + 1) % self.run_count
         if self.run_count == 11:
             self.run_count = 9
         self.x += (self.dir * 30)
         if self.run_timer >= 1.0:
             self.run_timer = 0.0
-    def frame_handle_jump(self):
+    def handle_frame_jump(self):
         if self.jump_count == 1:
             self.jump_frame = (self.jump_frame - 1)
             self.y -= 20
@@ -65,23 +65,23 @@ class Marie:
                 self.x -= self.dir * 15
             if self.jump_frame == 8:
                 self.jump_count = 1
-    def frame_handle_down(self):
+    def handle_frame_down(self):
         if self.down_frame == 9:
             self.down_frame = (self.down_frame + 1) % 10
             self.down_frame = 3
         else:
             self.down_frame = (self.down_frame + 1) % 10
-    def frame_handle_win(self):
+    def handle_frame_win(self):
         self.win_frame = (self.win_frame + 1)
         if self.attack00_frame == 7:
             self.frame_ = self.STAND_L
             self.attack00_frame = 0
-    def frame_handle_attack00(self):
+    def handle_frame_attack00(self):
         self.attack00_frame = (self.attack00_frame + 1)
         if self.attack00_frame == 7:
             self.frame_ = self.STAND_L
             self.attack00_frame = 0
-    def frame_handle_attack01(self):
+    def handle_frame_attack01(self):
         self.attack01_frame = self.attack01_frame + 1
         self.attack01_tiemr = (self.attack01_tiemr + 0.8)
         if self.attack01_tiemr >= 3.0:
@@ -89,14 +89,14 @@ class Marie:
         if self.attack01_frame == 10:
             self.frame_ = self.STAND_L
             self.attack01_frame = 0
-    def frame_handle_attack02(self):
+    def handle_frame_attack02(self):
         self.attack02_frame = self.attack02_frame + 1
         if self.attack01_tiemr >= 1.0:
             self.attack01_tiemr = 0.0
         if self.attack02_frame == 11:
             self.frame_ = self.STAND_L
             self.attack02_frame = 0
-    def frame_handle_call00(self):
+    def handle_frame_call00(self):
         self.call00_frame = (self.call00_frame + 1)
         self.call_timer = (self.call_timer + 0.8)
         if self.call_timer >= 3.0:
@@ -104,14 +104,14 @@ class Marie:
         if self.call00_frame == 6:
             self.frame_ = self.STAND_L
             self.call00_frame = 0
-    def frame_handle_call01(self):
+    def handle_frame_call01(self):
         self.call01_frame = (self.call01_frame + 1)
         if self.call_timer >= 1.0:
             self.call_timer = 0.0
         if self.call01_frame == 6:
             self.frame_ = self.STAND_L
             self.call01_frame = 0
-    def frame_handle_backstep(self):
+    def handle_frame_backstep(self):
         self.backstep_frame = (self.backstep_frame + 1)
         self.x -= (self.dir * 20)
         if self.backstep_timer >= 0.8:
@@ -148,21 +148,76 @@ class Marie:
     def handle_image_backstep(self):
         self.backstep_L.clip_draw(self.backstep_frame * 140, 0, 140, 250, self.x, self.y)
 
+    def handle_event(self, event):
+        # KeyDown
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_LEFT):
+            if self.y == self.default_y:
+                if self.backstep_timer >= 1.0:
+                    self.frame_ = self.BACKSTEP_L
+                else:
+                    self.frame_ = self.BACKWALK_L
+                self.L_keydown_jump = True
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_RIGHT):
+            if self.y == self.default_y:
+                if self.run_timer >= 1.0:
+                    self.frame_ = self.RUN_L
+                else:
+                    self.frame_ = self.WALK_L
+                self.R_keydown_jump = True
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_UP):
+            if self.frame_ in (self.STAND_L, self.RUN_L, self.WALK_L, self.BACKWALK_L):
+                self.frame_ = self.JUMP_L
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_DOWN):
+                self.frame_ = self.DOWN_L
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_a):
+            if self.y == self.default_y:
+                if self.attack01_tiemr >= 1.0:
+                    self.frame_ = self.ATTACK02_L
+                else:
+                    self.frame_ = self.ATTACK01_L
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):
+            if self.y == self.default_y:
+                self.frame_ = self.ATTACK00_L
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_d):
+            if self.y == self.default_y:
+                if self.call_timer >= 1.0:
+                    self.frame_ = self.CALL01_L
+                else:
+                    self.frame_ = self.CALL00_L
+
+        # Key UP
+        if (event.type, event.key) == (SDL_KEYUP, SDLK_LEFT):
+            if self.frame_ in (self.BACKWALK_L, self.BACKSTEP_L):
+                self.frame_ = self.STAND_L
+                self.backstep_frame = 0
+                self.backwalk_frame = 0
+            self.L_keydown_jump = False
+        if (event.type, event.key) == (SDL_KEYUP, SDLK_RIGHT):
+            if self.frame_ in (self.WALK_L, self.RUN_L):
+                self.frame_ = self.STAND_L
+                self.walk_frame = 0
+                self.run_frame = 0
+            self.R_keydown_jump = False
+        if (event.type, event.key) == (SDL_KEYUP, SDLK_DOWN):
+            self.frame_ = self.STAND_L
+            self.down_frame = 0
+        pass
+
     # 프레임 갱신 핸들
-    frame_handle = {
-        STAND_L: frame_handle_stand,
-        WALK_L: frame_handle_walk,
-        BACKWALK_L: frame_handle_backwalk,
-        RUN_L: frame_handle_run,
-        DOWN_L: frame_handle_down,
-        WIN_L: frame_handle_win,
-        JUMP_L: frame_handle_jump,
-        BACKSTEP_L: frame_handle_backstep,
-        CALL00_L: frame_handle_call00,
-        CALL01_L: frame_handle_call01,
-        ATTACK00_L: frame_handle_attack00,
-        ATTACK01_L: frame_handle_attack01,
-        ATTACK02_L: frame_handle_attack02
+    handle_frame = {
+        STAND_L: handle_frame_stand,
+        WALK_L: handle_frame_walk,
+        BACKWALK_L: handle_frame_backwalk,
+        RUN_L: handle_frame_run,
+        DOWN_L: handle_frame_down,
+        WIN_L: handle_frame_win,
+        JUMP_L: handle_frame_jump,
+        BACKSTEP_L: handle_frame_backstep,
+        CALL00_L: handle_frame_call00,
+        CALL01_L: handle_frame_call01,
+        ATTACK00_L: handle_frame_attack00,
+        ATTACK01_L: handle_frame_attack01,
+        ATTACK02_L: handle_frame_attack02
      }
 
     # 이미지 출력 핸들
@@ -183,7 +238,7 @@ class Marie:
     }
 
     def update(self):
-        self.frame_handle[self.frame_](self)
+        self.handle_frame[self.frame_](self)
 
     def __init__(self):
         # 캐릭터 피봇 좌표

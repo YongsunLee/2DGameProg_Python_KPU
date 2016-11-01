@@ -28,7 +28,7 @@ def handle_events():
         else:
             if (event.type, event.key) == (SDL_KEYDOWN, SDLK_ESCAPE):
                 game_framework.quit()
-            elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_SPACE):
+            elif (event.type) == (SDL_KEYDOWN):
                 game_framework.change_state(main_state)
 
 def draw():
