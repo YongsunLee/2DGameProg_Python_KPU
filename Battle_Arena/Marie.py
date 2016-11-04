@@ -8,7 +8,7 @@ class Marie:
     STAND_L, WALK_L, BACKWALK_L, RUN_L, DOWN_L, WIN_L, JUMP_L, BACKSTEP_L = 0, 1, 2, 3, 4, 5, 6, 7
     ATTACK00_L, ATTACK01_L, CALL00_L, CALL01_L, ATTACK02_L = 8, 9, 10, 11, 12
 
-    # 프레임 출력함수
+    # 프레임 변화 핸들
     # 키업에서 상태 변화가 아닌
     # 여기서 상태 변화를 넣는것 프레임이 끝날때 상태를 변경.
     def handle_frame_stand(self):
@@ -120,7 +120,7 @@ class Marie:
             self.frame_ = self.STAND_L
             self.backstep_frame = 0
 
-    # 이미지 출력 함수
+    # 이미지 출력 핸들
     def handle_image_stand(self):
         self.stand_L.clip_draw(self.stand_frame * 121, 0, 121, 250, self.x, self.y)
     def handle_image_walk(self):
