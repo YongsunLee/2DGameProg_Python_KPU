@@ -39,7 +39,7 @@ def draw():
 
 def update():
     global title_load
-    delay(0.04)
+    #delay(0.04)
 
 
 def pause():

@@ -17,7 +17,6 @@ class BackGround:
         self.image.draw(640,360)
     pass
 
-
 def enter():
     global player
     global background
@@ -52,7 +51,7 @@ def handle_events():
 
 def update():
     player.update()
-    delay(0.04)
+    #delay(0.04)
     pass
 
 

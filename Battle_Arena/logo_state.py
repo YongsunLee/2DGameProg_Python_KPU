@@ -36,7 +36,7 @@ def update():
     if(logo_time > 1.0):
         logo_time = 0
         game_framework.push_state(title_state)
-    delay(0.04)
+    #delay(0.04)
     logo_time += 0.05
 
 

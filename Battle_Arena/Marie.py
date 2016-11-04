@@ -201,7 +201,6 @@ class Marie:
         if (event.type, event.key) == (SDL_KEYUP, SDLK_DOWN):
             self.frame_ = self.STAND_L
             self.down_frame = 0
-        pass
 
     # 프레임 갱신 핸들
     handle_frame = {
