@@ -18,3 +18,7 @@ Commit Update log
 
 2016.11.5 : Kaguya Persona image 추가
 	    Marie Hit 이미지 추가
+
+2016.11.8 : Kaguya Persona 리소스 작업 완료
+	    Marie Guard 이미지 추가 , 히트 이미지 추가
+
