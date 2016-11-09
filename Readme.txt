@@ -22,3 +22,4 @@ Commit Update log
 2016.11.8 : Kaguya Persona 리소스 작업 완료
 	    Marie Guard 이미지 추가 , 히트 이미지 추가
 
+2016.11.9 : draw_bb() 추가 충돌 체크 미설정.

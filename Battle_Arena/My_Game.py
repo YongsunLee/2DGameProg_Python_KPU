@@ -5,8 +5,8 @@ os.chdir('D:/Job/2 - 2/2DGP/Project_Battle Arena/SunE_Repository/Battle_Arena/As
 import game_framework
 from pico2d import *
 
-import test_select
+import main_state
 
 open_canvas(1280,720,sync=True)
-game_framework.run(test_select)
+game_framework.run(main_state)
 close_canvas()

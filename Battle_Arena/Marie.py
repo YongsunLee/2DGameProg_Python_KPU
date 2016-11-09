@@ -314,4 +314,11 @@ class Marie:
 
 
     def draw(self):
-            self.image_handle[self.frame_](self)
+        self.image_handle[self.frame_](self)
+        self.draw_bb()
+
+    def get_bb(self):
+        pass
+
+    def draw_bb(self):
+        draw_rectangle(*self.get_bb())

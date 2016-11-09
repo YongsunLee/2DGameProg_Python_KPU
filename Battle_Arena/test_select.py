@@ -64,6 +64,11 @@ def exit():
     del (image)
     del (Marie_battle_coin)
     del (Chie_battle_coin)
+    del (cursor)
+    del (chie_cutsin)
+    del (chie_name)
+    del (marie_cutsin)
+    del (marie_name)
 
 def handle_events():
     global cursor_x, cursor_y, marie_cutstin_x, marie_cutstin_y, marie_name_x, marie_name_y
