@@ -3,10 +3,18 @@ import os
 os.chdir('D:/Job/2 - 2/2DGP/Project_Battle Arena/SunE_Repository/Battle_Arena/Asset')
 
 from pico2d import *
+import main_state
 
 class Marie:
     STAND_L, WALK_L, BACKWALK_L, RUN_L, DOWN_L, WIN_L, JUMP_L, BACKSTEP_L = 0, 1, 2, 3, 4, 5, 6, 7
     ATTACK00_L, ATTACK01_L, CALL00_L, CALL01_L, ATTACK02_L = 8, 9, 10, 11, 12
+
+    #속도
+    PIXEL_PER_METER = (250.0 / 160.0)  # 10 pixel 30cm
+    RUN_SPEED_KMPH = 1000.0
+    RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
+    RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
+    RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
 
     # 프레임 변화 핸들
     # 키업에서 상태 변화가 아닌
@@ -19,7 +27,7 @@ class Marie:
             self.walk_frame = 2
         else:
             self.walk_frame = (self.walk_frame + 1) % 8
-        self.x += (self.dir * 18)
+        self.x += (self.dir * distance)
         self.run_timer = (self.run_timer + 0.8)
         if self.run_timer >= 2.0:
             self.run_timer = 0.0
@@ -236,7 +244,9 @@ class Marie:
         ATTACK02_L: handle_image_attack02
     }
 
-    def update(self):
+    def update(self, frame_time):
+        global distance
+        distance = self.RUN_SPEED_PPS * frame_time
         self.handle_frame[self.frame_](self)
 
     def __init__(self):
@@ -318,6 +328,32 @@ class Marie:
         self.draw_bb()
 
     def get_bb(self):
+        if (self.frame_ == self.STAND_L):
+            return self.x - (self.stand_L.w/10)/3, self.y - (self.stand_L.h/2), self.x + (self.stand_L.w/10)/2, self.y + (self.stand_L.h/2)
+        elif (self.frame_ == self.WALK_L):
+            return self.x - (self.walk_L.w/8)/2, self.y - (self.walk_L.h/2), self.x + (self.walk_L.w/8)/2, self.y + (self.walk_L.h/2)
+        elif (self.frame_ == self.BACKWALK_L):
+            return self.x - (self.backwalk_L.w/12)/2, self.y - (self.backwalk_L.h/2), self.x + (self.backwalk_L.w/12)/2, self.y + (self.backwalk_L.h/2)
+        elif (self.frame_ == self.RUN_L):
+            return self.x - (self.run_L.w/12)/2, self.y - (self.run_L.h/2), self.x + (self.run_L.w/12)/2, self.y + (self.run_L.h/2)
+        elif (self.frame_ == self.DOWN_L):
+            return self.x - (self.down_L.w/10)/2, self.y - (self.down_L.h/2), self.x + (self.down_L.w/10)/2, self.y + (self.down_L.h/2)
+        elif (self.frame_ == self.WIN_L):
+            return self.x - (self.win_L.w/8)/2, self.y - (self.win_L.h/2), self.x + (self.win_L.w/8)/2, self.y + (self.win_L.h/2)
+        elif (self.frame_ == self.JUMP_L):
+            return self.x - (self.jump_L.w/8)/2, self.y - (self.jump_L.h/2), self.x + (self.jump_L.w/8)/2, self.y + (self.jump_L.h/2)
+        elif (self.frame_ == self.BACKSTEP_L):
+            return self.x - (self.backstep_L.w/6)/2, self.y - (self.backstep_L.h/2), self.x + (self.backstep_L.w/6)/2, self.y + (self.backstep_L.h/2)
+        elif (self.frame_ == self.ATTACK00_L):
+            return self.x - (self.attack00_L.w/8)/2, self.y - (self.attack00_L.h/2), self.x + (self.attack00_L.w/8)/2, self.y + (self.attack00_L.h/2)
+        elif (self.frame_ == self.ATTACK01_L):
+            return self.x - (self.attack01_L.w/10)/2, self.y - (self.attack01_L.h/2), self.x + (self.attack01_L.w/10)/2, self.y + (self.attack01_L.h/2)
+        elif (self.frame_ == self.ATTACK02_L):
+            return self.x - (self.attack02_L.w/12)/2, self.y - (self.attack02_L.h/2), self.x + (self.attack02_L.w/12)/2, self.y + (self.attack02_L.h/2)
+        elif (self.frame_ == self.CALL00_L):
+            return self.x - (self.call00_L.w/6)/2, self.y - (self.call00_L.h/2), self.x + (self.call00_L.w/6)/2, self.y + (self.call00_L.h/2)
+        elif (self.frame_ == self.CALL01_L):
+            return self.x - (self.call01_L.w/6)/2, self.y - (self.call01_L.h/2), self.x + (self.call01_L.w/6)/2, self.y + (self.call01_L.h/2)
         pass
 
     def draw_bb(self):

@@ -9,6 +9,8 @@ import Marie
 
 name = "MainState"
 
+current_time = 0.0
+
 class BackGround:
     def __init__(self):
         self.image = load_image('BackGround.png')
@@ -20,6 +22,7 @@ class BackGround:
 def enter():
     global player
     global background
+    global frame_time
 
     player = Marie.Marie()
     background = BackGround()
@@ -48,9 +51,17 @@ def handle_events():
         else:
             player.handle_event(event)
 
+def get_frame_time():
+    global current_time
+    frame_time = get_time() - current_time
+    current_time += frame_time
+    return frame_time
 
 def update():
-    player.update()
+    global frame_time
+    frame_time = get_frame_time()
+    handle_events()
+    player.update(frame_time)
     #delay(0.04)
     pass
 
