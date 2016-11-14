@@ -25,3 +25,5 @@ Commit Update log
 2016.11.9 : draw_bb() 추가 충돌 체크 미설정.
 
 2016.11.10 : frame_time 추가
+
+2016.11.14 : Speed 추가

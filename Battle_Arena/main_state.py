@@ -62,7 +62,6 @@ def update():
     frame_time = get_frame_time()
     handle_events()
     player.update(frame_time)
-    #delay(0.04)
     pass
 
 
@@ -71,8 +70,3 @@ def draw():
     background.draw()
     player.draw()
     update_canvas()
-
-
-
-
-

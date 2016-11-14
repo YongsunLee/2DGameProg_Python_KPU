@@ -10,24 +10,39 @@ class Marie:
     ATTACK00_L, ATTACK01_L, CALL00_L, CALL01_L, ATTACK02_L = 8, 9, 10, 11, 12
 
     #속도
-    PIXEL_PER_METER = (250.0 / 160.0)  # 10 pixel 30cm
-    RUN_SPEED_KMPH = 1000.0
-    RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
-    RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
-    RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
+    PIXEL_PER_METER = (250.0 / 1.6)  # 250 pixel 160cm // 1 pixel 1.6cm
+    # 걷기
+    WALK_SPEED_KMPH = 10.0          # Km / Hour
+    WALK_SPEED_PPS = (((WALK_SPEED_KMPH * 1000.0 / 60.0) / 60.0) * PIXEL_PER_METER)
+    BACKWALK_SPEED_KMPH = 5.0       # Km / Hour
+    BACKWALK_SPEED_PPS = (((BACKWALK_SPEED_KMPH * 1000.0 / 60.0) / 60.0) * PIXEL_PER_METER)
+    # 뛰기
+    RUN_SPEED_KMPH = 20.0           # Km / Hour
+    RUN_SPEED_PPS = (((RUN_SPEED_KMPH * 1000.0 / 60.0) / 60.0) * PIXEL_PER_METER)
+    BACKSTEP_SPEED_KMPH = 15.0      # Km / Hour
+    BACKSTEP_SPEED_PPS = (((BACKSTEP_SPEED_KMPH * 1000.0 / 60.0) / 60.0) * PIXEL_PER_METER)
+    # 점프
+    JUMP_SPEED_KMPH = 25.0
+    JUMP_SPEED_PPS = (((JUMP_SPEED_KMPH * 1000.0 / 60.0) / 60.0) * PIXEL_PER_METER)
+
+    # 액션 프레임 조절
+    TIME_PER_ACTION = 0.5
+    ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
+    FRAMES_PER_ACTION = 10
 
     # 프레임 변화 핸들
     # 키업에서 상태 변화가 아닌
     # 여기서 상태 변화를 넣는것 프레임이 끝날때 상태를 변경.
     def handle_frame_stand(self):
         self.stand_frame = (self.stand_frame + 1) % 10
+        #self.stand_frame = int(self.stand_frame) % 10
     def handle_frame_walk(self):
         if self.walk_frame == 7:
             self.walk_frame = (self.walk_frame + 1) % 8
             self.walk_frame = 2
         else:
             self.walk_frame = (self.walk_frame + 1) % 8
-        self.x += (self.dir * distance)
+        self.x += (self.dir * s_walk)
         self.run_timer = (self.run_timer + 0.8)
         if self.run_timer >= 2.0:
             self.run_timer = 0.0
@@ -37,7 +52,7 @@ class Marie:
             self.backwalk_frame = 2
         else:
             self.backwalk_frame = (self.backwalk_frame + 1) % 12
-        self.x -= (self.dir * 10)
+        self.x -= (self.dir * s_backwalk)
         self.backstep_timer = (self.backstep_timer + 0.8)
         if self.backstep_timer >= 3.0:
             self.backstep_timer = 0.0
@@ -45,32 +60,37 @@ class Marie:
         self.run_frame = (self.run_frame + 1) % self.run_count
         if self.run_count == 11:
             self.run_count = 9
-        self.x += (self.dir * 30)
+        self.x += (self.dir * s_run)
         if self.run_timer >= 1.0:
             self.run_timer = 0.0
     def handle_frame_jump(self):
+        def clamp(minimum, x, maximum):
+            return max(minimum, min(x, maximum))
         if self.jump_count == 1:
             self.jump_frame = (self.jump_frame - 1)
-            self.y -= 20
+            self.y -= s_jump
             if self.R_keydown_jump:
-                self.x += self.dir * 15
+                self.x += self.dir * s_walk
             elif self.L_keydown_jump:
-                self.x -= self.dir * 15
+                self.x -= self.dir * s_walk
             if self.jump_frame == 0:
                 self.jump_count = 0
                 if self.R_keydown_jump:
                     self.frame_ = self.WALK_L
+                    self.y = self.default_y
                 elif self.L_keydown_jump:
                     self.frame_ = self.BACKWALK_L
+                    self.y = self.default_y
                 else:
                     self.frame_ = self.STAND_L
+                    self.y = self.default_y
         else:
             self.jump_frame = (self.jump_frame + 1)
-            self.y += 20
+            self.y += s_jump
             if self.R_keydown_jump:
-                self.x += self.dir * 15
+                self.x += self.dir * s_walk
             elif self.L_keydown_jump:
-                self.x -= self.dir * 15
+                self.x -= self.dir * s_walk
             if self.jump_frame == 8:
                 self.jump_count = 1
     def handle_frame_down(self):
@@ -121,7 +141,7 @@ class Marie:
             self.call01_frame = 0
     def handle_frame_backstep(self):
         self.backstep_frame = (self.backstep_frame + 1)
-        self.x -= (self.dir * 20)
+        self.x -= (self.dir * s_backstep)
         if self.backstep_timer >= 0.8:
             self.backstep_timer = 0.0
         if self.backstep_frame == 5:
@@ -176,6 +196,7 @@ class Marie:
             if self.frame_ in (self.STAND_L, self.RUN_L, self.WALK_L, self.BACKWALK_L):
                 self.frame_ = self.JUMP_L
         if (event.type, event.key) == (SDL_KEYDOWN, SDLK_DOWN):
+            if self.y == self.default_y:
                 self.frame_ = self.DOWN_L
         if (event.type, event.key) == (SDL_KEYDOWN, SDLK_a):
             if self.y == self.default_y:
@@ -244,11 +265,26 @@ class Marie:
         ATTACK02_L: handle_image_attack02
     }
 
+    # 속도 계산 핸들
+    def handle_speed(self, frame_time):
+        global  s_walk, s_backwalk, s_run, s_backstep, s_jump
+        s_walk = self.WALK_SPEED_PPS * frame_time
+        s_backwalk = self.BACKWALK_SPEED_PPS * frame_time
+        s_run = self.RUN_SPEED_PPS * frame_time
+        s_backstep = self.BACKSTEP_SPEED_PPS * frame_time
+        s_jump = self.JUMP_SPEED_PPS * frame_time
+
+        #self.stand_frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * frame_time
+
+
+        pass
+
+    # 업데이트
     def update(self, frame_time):
-        global distance
-        distance = self.RUN_SPEED_PPS * frame_time
+        self.handle_speed(frame_time)
         self.handle_frame[self.frame_](self)
 
+    # 초기화
     def __init__(self):
         # 캐릭터 피봇 좌표
         self.x = 320
