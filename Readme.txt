@@ -27,3 +27,5 @@ Commit Update log
 2016.11.10 : frame_time 추가
 
 2016.11.14 : Speed 추가
+
+2016.11.15 : Time 추가 완료
