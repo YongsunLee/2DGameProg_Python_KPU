@@ -3,7 +3,6 @@ import os
 os.chdir('D:/Job/2 - 2/2DGP/Project_Battle Arena/SunE_Repository/Battle_Arena/Asset')
 
 from pico2d import *
-
 import game_framework
 import main_state
 
@@ -56,7 +55,8 @@ def enter():
 
 
 def exit():
-    global image, Marie_battle_coin, Chie_battle_coin
+    global image, Marie_battle_coin, Chie_battle_coin, cursor, chie_cutsin, chie_name
+    global marie_cutsin, marie_name
 
     print(player)
     print(com)
@@ -117,6 +117,7 @@ def handle_events():
                     player = CHIE
                     com = MARIE
                     pass
+                game_framework.change_state(main_state)
 def draw():
     clear_canvas()
     image.draw(640,360)
@@ -134,12 +135,5 @@ def update():
 def pause():
     pass
 
-
 def resume():
     pass
-
-
-
-
-
-

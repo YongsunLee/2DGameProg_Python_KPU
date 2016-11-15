@@ -3,9 +3,8 @@ import os
 os.chdir('D:/Job/2 - 2/2DGP/Project_Battle Arena/SunE_Repository/Battle_Arena/Asset')
 
 from pico2d import *
-
 import game_framework
-import main_state
+import select_state
 
 name = "TitleState"
 image = None
@@ -29,7 +28,7 @@ def handle_events():
             if (event.type, event.key) == (SDL_KEYDOWN, SDLK_ESCAPE):
                 game_framework.quit()
             elif (event.type) == (SDL_KEYDOWN):
-                game_framework.change_state(main_state)
+                game_framework.change_state(select_state)
 
 def draw():
     clear_canvas()
@@ -39,7 +38,6 @@ def draw():
 
 def update():
     global title_load
-    #delay(0.04)
 
 
 def pause():
