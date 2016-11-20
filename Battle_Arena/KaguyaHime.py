@@ -17,7 +17,7 @@ class Kaguya:
     # 액션 프레임 조절
     TIME_PER_ACTION = 0.5
     ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
-    FRAMES_PER_ACTION = 3
+    FRAMES_PER_ACTION = 5
 
     # 프레임 변화 핸들
     # 키업에서 상태 변화가 아닌

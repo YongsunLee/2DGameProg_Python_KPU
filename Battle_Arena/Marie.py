@@ -69,18 +69,16 @@ class Marie:
         if self.run_timer >= 1.0:
             self.run_timer = 0.0
     def handle_frame_jump(self):
-        def clamp(minimum, x, maximum):
-            return max(minimum, min(x, maximum))
-        if self.jump_count == 1:
-            #self.jump_frame = (self.jump_frame - 1)
-            self.y -= s_jump
-            print(self.jump_frame)
+        self.jump_frame = int(self.total_frame) % 16
+        if self.jump_frame <= 8:
+            self.y += s_jump
             if self.R_keydown_jump:
                 self.x += self.dir * s_walk
             elif self.L_keydown_jump:
                 self.x -= self.dir * s_walk
-            if self.jump_frame == 0:
-                self.jump_count = 0
+        elif self.jump_frame >= 9:
+            self.y -= s_jump
+            if self.jump_frame == 15:
                 if self.R_keydown_jump:
                     self.frame_ = self.WALK_L
                     self.y = self.default_y
@@ -90,17 +88,41 @@ class Marie:
                 else:
                     self.frame_ = self.STAND_L
                     self.y = self.default_y
-        else:
-            #self.jump_frame = (self.jump_frame + 1)
-            self.jump_frame = int(self.total_frame) % 9
-            self.y += s_jump
-            if self.R_keydown_jump:
-                self.x += self.dir * s_walk
-            elif self.L_keydown_jump:
-                self.x -= self.dir * s_walk
-            if self.jump_frame == 8:
-                self.jump_count = 1
-            print(self.jump_count)
+
+
+        #
+        #if self.jump_count == 1:
+        #    #self.jump_frame = (self.jump_frame - 1)
+        #    self.jump_frame = int(self.total_frame)
+        #    self.y -= s_jump
+        #    print(self.jump_frame)
+        #    if self.R_keydown_jump:
+        #        self.x += self.dir * s_walk
+        #    elif self.L_keydown_jump:
+        #        self.x -= self.dir * s_walk
+        #    if self.jump_frame == 0:
+        #        self.jump_count = 0
+        #        if self.R_keydown_jump:
+        #            self.frame_ = self.WALK_L
+        #            self.y = self.default_y
+        #        elif self.L_keydown_jump:
+        #            self.frame_ = self.BACKWALK_L
+        #            self.y = self.default_y
+        #        else:
+        #            self.frame_ = self.STAND_L
+        #            self.y = self.default_y
+        #else:
+        #    #self.jump_frame = (self.jump_frame + 1)
+        #    self.jump_frame = int(self.total_frame)
+        #    self.y += s_jump
+        #    if self.R_keydown_jump:
+        #        self.x += self.dir * s_walk
+        #    elif self.L_keydown_jump:
+        #        self.x -= self.dir * s_walk
+        #    if self.jump_frame == 8:
+        #        self.jump_count = 1
+
+
     def handle_frame_down(self):
        # if self.down_frame == 9:
        #     #self.down_frame = (self.down_frame + 1) % 10
@@ -110,7 +132,8 @@ class Marie:
        #    self.down_frame = (self.down_frame + 1) % 10
             self.down_frame = int(self.total_frame) % 10
             if self.down_frame == 9:
-                self.down_frame = 3
+                self.down_frame = int(self.total_frame) % 10
+
     def handle_frame_win(self):
         self.win_frame = (self.win_frame + 1)
         if self.attack00_frame == 7:
@@ -178,7 +201,7 @@ class Marie:
     def handle_image_down(self):
         self.down_L.clip_draw(self.down_frame * 121, 0, 121, 250, self.x, self.y)
     def handle_image_jump(self):
-        if self.jump_frame < 8:
+        if self.jump_frame <= 8:
             self.jump_L.clip_draw(self.jump_frame * 121, 0, 121, 250, self.x, self.y)
         else:
             self.jump_L.clip_draw((16 - self.jump_frame) * 121, 0, 121, 250, self.x, self.y)
