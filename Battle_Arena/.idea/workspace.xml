@@ -40,7 +40,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Marie.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Marie.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Marie.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="1691">
@@ -72,6 +72,16 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="Chie.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Chie.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="171">
+              <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="KaguyaHime.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/KaguyaHime.py">
           <provider selected="true" editor-type-id="text-editor">
@@ -82,11 +92,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main_state.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="main_state.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main_state.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1197">
-              <caret line="69" column="26" selection-start-line="69" selection-start-column="26" selection-end-line="69" selection-end-column="26" />
+            <state relative-caret-position="266">
+              <caret line="20" column="28" selection-start-line="20" selection-start-column="28" selection-end-line="20" selection-end-column="28" />
               <folding>
                 <element signature="e#233#365#0" expanded="false" />
               </folding>
@@ -107,7 +117,6 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/start_state.py" />
-        <option value="$PROJECT_DIR$/Chie.py" />
         <option value="$PROJECT_DIR$/player_data.txt" />
         <option value="$PROJECT_DIR$/test_player.py" />
         <option value="$PROJECT_DIR$/test_select.py" />
@@ -119,6 +128,7 @@
         <option value="$PROJECT_DIR$/My_Game.py" />
         <option value="$PROJECT_DIR$/KaguyaHime.py" />
         <option value="$PROJECT_DIR$/Marie.py" />
+        <option value="$PROJECT_DIR$/Chie.py" />
       </list>
     </option>
   </component>
@@ -177,7 +187,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../11_Sound" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -898,13 +908,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/start_state.py" />
-    <entry file="file://$PROJECT_DIR$/Chie.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1425">
-          <caret line="141" column="0" selection-start-line="141" selection-start-column="0" selection-end-line="141" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/player_data.txt" />
     <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python35/Lib/site-packages/sdl2/rect.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -971,20 +974,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main_state.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1197">
-          <caret line="69" column="26" selection-start-line="69" selection-start-column="26" selection-end-line="69" selection-end-column="26" />
-          <folding>
-            <element signature="e#233#365#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/KaguyaHime.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="627">
           <caret line="33" column="0" selection-start-line="33" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Chie.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="171">
+          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -1015,6 +1016,16 @@
             <element signature="e#9174#9255#0" expanded="false" />
             <element signature="e#11704#12212#0" expanded="false" />
             <element signature="e#12249#12756#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main_state.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="266">
+          <caret line="20" column="28" selection-start-line="20" selection-start-column="28" selection-end-line="20" selection-end-column="28" />
+          <folding>
+            <element signature="e#233#365#0" expanded="false" />
           </folding>
         </state>
       </provider>
