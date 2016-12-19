@@ -10,7 +10,7 @@ class Marie:
     ATTACK00_L, ATTACK01_L, CALL00_L, CALL01_L, ATTACK02_L = 8, 9, 10, 11, 12
 
     #속도
-    PIXEL_PER_METER = (250.0 / 1.6)  # 250 pixel 160cm // 1 pixel 1.6cm
+    PIXEL_PER_METER = (250.0 / 1.6)  # 250 pixel 160cm // 1 pixel 0.64cm
     # 걷기
     WALK_SPEED_KMPH = 10.0          # Km / Hour
     WALK_SPEED_PPS = (((WALK_SPEED_KMPH * 1000.0 / 60.0) / 60.0) * PIXEL_PER_METER)
