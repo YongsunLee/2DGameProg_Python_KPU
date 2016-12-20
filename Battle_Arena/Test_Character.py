@@ -4,6 +4,7 @@ import os
 from pico2d import *
 import game_framework
 import Chie
+import Marie_test
 
 name = "Test_Character"
 
@@ -20,8 +21,8 @@ def enter():
     global frame_time
     global com
 
-    player = Chie.Chie()
-
+    #player = Chie.Chie()
+    player = Marie_test.Marie()
     pass
 
 def exit():
