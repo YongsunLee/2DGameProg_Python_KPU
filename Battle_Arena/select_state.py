@@ -1,10 +1,10 @@
 import os
-
 os.chdir('D:/Job/2 - 2/2DGP/Project_Battle Arena/SunE_Repository/Battle_Arena/Asset')
 
 from pico2d import *
 import game_framework
 import main_state
+import json
 
 name = "SelectState"
 image = None
@@ -23,11 +23,11 @@ marie_name_x , marie_name_y = 280, 250
 chie_cutstin_x ,chie_cutstin_y = 1040, 450
 chie_name_x , chie_name_y = 1040, 190
 
-player, com = 0, 0
+s_player, s_com = 0, 0
 
 def draw_marie():
     global marie_cutsin, marie_name, marie_cutstin_x, marie_cutstin_y, marie_name_x, marie_name_y
-    global player, com
+    global s_player, s_com
     marie_cutsin = load_image('Marie_Select.png')
     marie_name = load_image('Name_Marie.png')
 
@@ -58,8 +58,14 @@ def exit():
     global image, Marie_battle_coin, Chie_battle_coin, cursor, chie_cutsin, chie_name
     global marie_cutsin, marie_name
 
-    print(player)
-    print(com)
+    data = {'s_player' : s_player, 's_com' : s_com}
+
+    f = open('select_data.txt', 'w')
+    json.dump(data, f)
+    f.close()
+
+    print(s_player)
+    print(s_com)
 
     del (image)
     del (Marie_battle_coin)
@@ -73,7 +79,7 @@ def exit():
 def handle_events():
     global cursor_x, cursor_y, marie_cutstin_x, marie_cutstin_y, marie_name_x, marie_name_y
     global chie_cutstin_x ,chie_cutstin_y, chie_name_x , chie_name_y
-    global player, com
+    global s_player, s_com
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -107,17 +113,17 @@ def handle_events():
                     chie_name_x, chie_name_y = 1040, 190
 
             elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_SPACE):
-                if (cursor_x, cursor_y) >= (680, 360):
-                    #player = marie
-                    player = MARIE
-                    com = CHIE
+                if (cursor_x, cursor_y) == (770, 560):
+                    #s_player = marie
+                    s_player = MARIE
+                    s_com = CHIE
                     pass
-                elif (cursor_x, cursor_y) <= (680, 360):
-                    #player = chie
-                    player = CHIE
-                    com = MARIE
+                elif (cursor_x, cursor_y) == (680, 360):
+                    #s_player = chie
+                    s_player = CHIE
+                    s_com = MARIE
                     pass
-                game_framework.change_state(main_state)
+                game_framework.push_state(main_state)
 def draw():
     clear_canvas()
     image.draw(640,360)

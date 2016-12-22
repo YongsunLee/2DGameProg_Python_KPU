@@ -1,439 +1,858 @@
 import os
-
 os.chdir('D:/Job/2 - 2/2DGP/Project_Battle Arena/SunE_Repository/Battle_Arena/Asset')
 
 from pico2d import *
-#import main_state
+import random
 
 class Marie:
-    STAND_L, WALK_L, BACKWALK_L, RUN_L, DOWN_L, WIN_L, JUMP_L, BACKSTEP_L = 0, 1, 2, 3, 4, 5, 6, 7
-    ATTACK00_L, ATTACK01_L, CALL00_L, CALL01_L, ATTACK02_L = 8, 9, 10, 11, 12
+    # 이동 상태
+    STAND_L, WALK_L, RUN_L, JUMP_L, DOWN_L, BACKWALK_L, BACKSTEP_L = 1, 2,  3,  4,  5,  6,  7
+    STAND_R, WALK_R, RUN_R, JUMP_R, DOWN_R, BACKWALK_R, BACKSTEP_R = 8, 9, 10, 11, 12, 13, 14
+    FALL = 15
+    # 공격 상태
+    SREG_L, RSWING_L, USWING_L = 16, 17, 18
+    SREG_R, RSWING_R, USWING_R = 19, 20, 21
+    # 방어 상태
+    GSTAND_L, GDOWN_L = 22, 23
+    GSTAND_R, GDOWN_R = 24, 25
+    # 피격 상태
+    HSTAND_L, HDOWN_L = 26, 27
+    HSTAND_R, HDOWN_R = 28, 29
+    # 페르소나 호출 상태
+    CCOM_L, CPRO_L = 30, 31
+    CCOM_R, CPRO_R = 32, 33
+    # 승리 상태
+    WIN_L = 34
+    WIN_R = 35
 
-    #속도
+    # 물리적 속도 지정
     PIXEL_PER_METER = (250.0 / 1.6)  # 250 pixel 160cm // 1 pixel 0.64cm
+    GRAVITY = 9.8
     # 걷기
-    WALK_SPEED_KMPH = 10.0          # Km / Hour
+    WALK_SPEED_KMPH = 10.0  # Km / Hour
     WALK_SPEED_PPS = (((WALK_SPEED_KMPH * 1000.0 / 60.0) / 60.0) * PIXEL_PER_METER)
-    BACKWALK_SPEED_KMPH = 5.0       # Km / Hour
+    BACKWALK_SPEED_KMPH = 5.0  # Km / Hour
     BACKWALK_SPEED_PPS = (((BACKWALK_SPEED_KMPH * 1000.0 / 60.0) / 60.0) * PIXEL_PER_METER)
     # 뛰기
-    RUN_SPEED_KMPH = 20.0           # Km / Hour
+    RUN_SPEED_KMPH = 20.0  # Km / Hour
     RUN_SPEED_PPS = (((RUN_SPEED_KMPH * 1000.0 / 60.0) / 60.0) * PIXEL_PER_METER)
-    BACKSTEP_SPEED_KMPH = 15.0      # Km / Hour
+    BACKSTEP_SPEED_KMPH = 15.0  # Km / Hour
     BACKSTEP_SPEED_PPS = (((BACKSTEP_SPEED_KMPH * 1000.0 / 60.0) / 60.0) * PIXEL_PER_METER)
     # 점프
-    JUMP_SPEED_KMPH = 25.0
+    JUMP_SPEED_KMPH = 20.0
     JUMP_SPEED_PPS = (((JUMP_SPEED_KMPH * 1000.0 / 60.0) / 60.0) * PIXEL_PER_METER)
 
     # 액션 프레임 조절
     TIME_PER_ACTION = 1.0
     ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
-    FRAMES_PER_ACTION = 15
+    FRAMES_PER_ACTION = 12
 
-    # 프레임 변화 핸들
-    # 키업에서 상태 변화가 아닌
-    # 여기서 상태 변화를 넣는것 프레임이 끝날때 상태를 변경.
+    # 속도 계산 핸들____________________________________________________________________
+    def handle_speed(self, frame_time):
+        global walk_speed, backwalk_speed, run_speed, backstep_speed, jump_speed
+        walk_speed     = self.WALK_SPEED_PPS       * frame_time
+        backwalk_speed = self.BACKWALK_SPEED_PPS   * frame_time
+        run_speed      = self.RUN_SPEED_PPS        * frame_time
+        backstep_speed = self.BACKSTEP_SPEED_PPS   * frame_time
+        jump_speed     = self.JUMP_SPEED_PPS       * frame_time
+
+        self.key_timer += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * frame_time
+        self.total_frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * frame_time
+    #__속도 계산 끝_____________________________________________________________________
+
+    # 프레임 출력함수________________________
     def handle_frame_stand(self):
-        #self.stand_frame = (self.stand_frame + 1) % 10
         self.stand_frame = int(self.total_frame) % 10
     def handle_frame_walk(self):
-        if self.walk_frame == 7:
-            #self.walk_frame = (self.walk_frame + 1) % 8
-            self.walk_frame = int(self.total_frame) % 8
-            self.walk_frame = 2
+        if self.key_timer < 3.0:
+            self.walk_frame = int(self.total_frame) % 6 + 2
+            if self.walk_frame == 5 and self.rand_val != 0:
+                self.rand_val = 0
         else:
-            #self.walk_frame = (self.walk_frame + 1) % 8
             self.walk_frame = int(self.total_frame) % 8
-        self.x += (self.dir * s_walk)
-        self.run_timer = (self.run_timer + 1.0)
-        if self.run_timer >= 2.0:
-            self.run_timer = 0.0
+            if self.walk_frame == 7 and self.rand_val != 0:
+                self.rand_val = 0
+        self.x += (self.dir * walk_speed)
+        self.key_timer = int(self.key_timer) % 4
     def handle_frame_backwalk(self):
-        if self.walk_frame == 11:
-            #self.backwalk_frame = (self.backwalk_frame + 1) % 12
-            self.backwalk_frame = int(self.total_frame) % 12
-            self.backwalk_frame = 2
+        if self.key_timer > 3.0:
+            self.backwalk_frame = int(self.total_frame) % 6 + 2
+            if self.backwalk_frame == 5 and self.rand_val != 0:
+                self.rand_val = 0
         else:
-            #self.backwalk_frame = (self.backwalk_frame + 1) % 12
-            self.backwalk_frame = int(self.total_frame) % 12
-        self.x -= (self.dir * s_backwalk)
-        self.backstep_timer = (self.backstep_timer + 1.0)
-        if self.backstep_timer >= 3.0:
-            self.backstep_timer = 0.0
+            self.backwalk_frame = int(self.total_frame) % 8
+            if self.backwalk_frame == 7 and self.rand_val != 0:
+                self.rand_val = 0
+        self.x -= (self.dir * backwalk_speed)
+        self.key_timer = int(self.key_timer) % 3
     def handle_frame_run(self):
-        #self.run_frame = (self.run_frame + 1) % self.run_count
-        self.run_frame = int(self.total_frame) % self.run_count
-        if self.run_count == 11:
-            self.run_count = 9
-        self.x += (self.dir * s_run)
-        if self.run_timer >= 1.0:
-            self.run_timer = 0.0
-    def handle_frame_jump(self):
-        self.jump_frame = int(self.total_frame) % 16
-        if self.jump_frame <= 8:
-            self.y += s_jump
-            if self.R_keydown_jump:
-                self.x += self.dir * s_walk
-            elif self.L_keydown_jump:
-                self.x -= self.dir * s_walk
-        elif self.jump_frame >= 9:
-            self.y -= s_jump
-            if self.jump_frame == 15:
-                if self.R_keydown_jump:
-                    self.frame_ = self.WALK_L
-                    self.y = self.default_y
-                elif self.L_keydown_jump:
-                    self.frame_ = self.BACKWALK_L
-                    self.y = self.default_y
-                else:
-                    self.frame_ = self.STAND_L
-                    self.y = self.default_y
-
-
-        #
-        #if self.jump_count == 1:
-        #    #self.jump_frame = (self.jump_frame - 1)
-        #    self.jump_frame = int(self.total_frame)
-        #    self.y -= s_jump
-        #    print(self.jump_frame)
-        #    if self.R_keydown_jump:
-        #        self.x += self.dir * s_walk
-        #    elif self.L_keydown_jump:
-        #        self.x -= self.dir * s_walk
-        #    if self.jump_frame == 0:
-        #        self.jump_count = 0
-        #        if self.R_keydown_jump:
-        #            self.frame_ = self.WALK_L
-        #            self.y = self.default_y
-        #        elif self.L_keydown_jump:
-        #            self.frame_ = self.BACKWALK_L
-        #            self.y = self.default_y
-        #        else:
-        #            self.frame_ = self.STAND_L
-        #            self.y = self.default_y
-        #else:
-        #    #self.jump_frame = (self.jump_frame + 1)
-        #    self.jump_frame = int(self.total_frame)
-        #    self.y += s_jump
-        #    if self.R_keydown_jump:
-        #        self.x += self.dir * s_walk
-        #    elif self.L_keydown_jump:
-        #        self.x -= self.dir * s_walk
-        #    if self.jump_frame == 8:
-        #        self.jump_count = 1
-
-
-    def handle_frame_down(self):
-       # if self.down_frame == 9:
-       #     #self.down_frame = (self.down_frame + 1) % 10
-       #     self.down_frame = int(self.total_frame) % 10
-       #     self.down_frame = 3
-       # else:
-       #    self.down_frame = (self.down_frame + 1) % 10
-            self.down_frame = int(self.total_frame) % 10
-            if self.down_frame == 9:
-                self.down_frame = int(self.total_frame) % 10
-
-    def handle_frame_win(self):
-        self.win_frame = (self.win_frame + 1)
-        if self.attack00_frame == 7:
-            self.frame_ = self.STAND_L
-            self.attack00_frame = 0
-    def handle_frame_attack00(self):
-        #self.attack00_frame = (self.attack00_frame + 1)
-        self.attack00_frame = int(self.total_frame) % 8
-        if self.attack00_frame == 7:
-            self.frame_ = self.STAND_L
-            self.attack00_frame = 0
-    def handle_frame_attack01(self):
-        #self.attack01_frame = self.attack01_frame + 1
-        self.attack01_frame = int(self.total_frame) % 11
-        self.attack01_tiemr = (self.attack01_tiemr + 1.0)
-        if self.attack01_tiemr >= 3.0:
-            self.attack01_tiemr = 0.0
-        if self.attack01_frame == 10:
-            self.frame_ = self.STAND_L
-            self.attack01_frame = 0
-    def handle_frame_attack02(self):
-        #self.attack02_frame = self.attack02_frame + 1
-        self.attack02_frame = int(self.total_frame) % 12
-        if self.attack01_tiemr >= 1.0:
-            self.attack01_tiemr = 0.0
-        if self.attack02_frame == 11:
-            self.frame_ = self.STAND_L
-            self.attack02_frame = 0
-    def handle_frame_call00(self):
-        #self.call00_frame = (self.call00_frame + 1)
-        self.call00_frame = int(self.total_frame) % 7
-        self.call_timer = (self.call_timer + 0.8)
-        if self.call_timer >= 3.0:
-            self.call_timer = 0.0
-        if self.call00_frame == 6:
-            self.frame_ = self.STAND_L
-            self.call00_frame = 0
-    def handle_frame_call01(self):
-        #self.call01_frame = (self.call01_frame + 1)
-        self.call01_frame = int(self.total_frame) % 7
-        if self.call_timer >= 1.0:
-            self.call_timer = 0.0
-        if self.call01_frame == 6:
-            self.frame_ = self.STAND_L
-            self.call01_frame = 0
-    def handle_frame_backstep(self):
-        #self.backstep_frame = (self.backstep_frame + 1)
-        self.backstep_frame = int(self.total_frame) % 6
-        self.x -= (self.dir * s_backstep)
-        if self.backstep_timer >= 0.8:
-            self.backstep_timer = 0.0
-        if self.backstep_frame == 5:
-            self.frame_ = self.STAND_L
-            self.backstep_frame = 0
-
-    # 이미지 출력 핸들
-    def handle_image_stand(self):
-        self.stand_L.clip_draw(self.stand_frame * 121, 0, 121, 250, self.x, self.y)
-    def handle_image_walk(self):
-        self.walk_L.clip_draw(self.walk_frame * 121, 0, 121, 250, self.x, self.y)
-    def handle_image_backwalk(self):
-        self.backwalk_L.clip_draw(self.backwalk_frame * 121, 0, 121, 250, self.x, self.y)
-    def handle_image_run(self):
-        self.run_L.clip_draw(self.run_frame * 190, 0, 190, 250, self.x, self.y)
-    def handle_image_down(self):
-        self.down_L.clip_draw(self.down_frame * 121, 0, 121, 250, self.x, self.y)
-    def handle_image_jump(self):
-        if self.jump_frame <= 8:
-            self.jump_L.clip_draw(self.jump_frame * 121, 0, 121, 250, self.x, self.y)
+        if self.key_timer > 3.0:
+            self.run_frame = 3
+            self.run_frame = int(self.total_frame) % 8
+            if self.run_frame == 7 and self.rand_val != 0:
+                self.rand_val = 0
         else:
-            self.jump_L.clip_draw((16 - self.jump_frame) * 121, 0, 121, 250, self.x, self.y)
-    def handle_image_win(self):
-        self.win_L.clip_draw(self.win_frame * 121, 0, 121, 250, self.x, self.y)
-    def handle_iamge_attack00(self):
-        self.attack00_L.clip_draw(self.attack00_frame * 210, 0, 210, 250, self.x, self.y)
-    def handle_image_attack01(self):
-        self.attack01_L.clip_draw(self.attack01_frame * 600, 0, 600, 320, self.x, self.y)
-    def handle_image_attack02(self):
-        self.attack02_L.clip_draw(self.attack02_frame * 700, 0, 700, 600, self.x, self.y)
-    def handle_image_call00(self):
-        self.call00_L.clip_draw(self.call00_frame * 170, 0, 170, 280, self.x, self.y)
-    def handle_image_call01(self):
-        self.call01_L.clip_draw(self.call01_frame * 180, 0, 180, 280, self.x, self.y)
+            self.run_frame = int(self.total_frame) % 11
+            if self.run_frame == 10 and self.rand_val != 0:
+                self.rand_val = 0
+        self.x += (self.dir * run_speed)
+    def handle_frame_down(self):
+        if self.key_timer > 3.0:
+            self.down_frame = int(self.total_frame) % 6 + 3
+            if self.down_frame == 5 and self.rand_val != 0:
+                self.rand_val = 0
+        else:
+            self.down_frame = int(self.total_frame) % 10
+            if self.down_frame == 9 and self.rand_val != 0:
+                self.rand_val = 0
+    def handle_frame_jump(self):
+        self.jump_frame = int(self.total_frame) % 8
+        self.y += int(jump_speed)
+        if self.jumping_Left_move == True:
+            if self.dir == 1: self.x -= (self.dir * walk_speed)
+            else:             self.x += (self.dir * walk_speed)
+        elif self.jumping_Right_move == True:
+            if self.dir == 1: self.x += (self.dir * walk_speed)
+            else:             self.x -= (self.dir * walk_speed)
+        if self.y >= 340:
+            self.state = self.FALL
+    def handle_frame_fall(self):
+        self.jump_frame = int(self.total_frame) % 16 + 8
+        self.y -= int(jump_speed)
+        if self.jumping_Left_move:
+            if self.dir == 1: self.x -= (self.dir * walk_speed)
+            else:             self.x += (self.dir * walk_speed)
+        elif self.jumping_Right_move:
+            if self.dir == 1: self.x += (self.dir * walk_speed)
+            else:             self.x -= (self.dir * walk_speed)
+        if self.y <= 180:
+            if self.dir == 1:
+                if self.jumping_Left_move:
+                    self.state = self.BACKWALK_L
+                elif self.jumping_Right_move:
+                    self.state = self.WALK_L
+                else:
+                    self.state = self.STAND_L
+            elif self.dir == -1:
+                if self.jumping_Left_move:
+                    self.state = self.WALK_R
+                elif self.jumping_Right_move:
+                    self.state = self.BACKWALK_L
+                else:
+                    self.state = self.STAND_R
+    def handle_frame_backstep(self):
+        self.backstep_frame = int(self.total_frame) % 5
+        self.x -= (self.dir * backstep_speed)
+        if self.backstep_frame == 4:
+            if self.dir == 1:
+                self.state = self.STAND_L
+            elif self.dir == -1:
+                self.state = self.STAND_R
+            if self.rand_val != 0:
+                self.rand_val = 0
+            self.backstep_frame = 0
+    def handle_frame_sreg(self):
+        self.s_reg_frame = int(self.total_frame) % 5
+        if self.s_reg_frame == 4:
+            if self.dir == 1:
+                self.state = self.STAND_L
+                self.frame_counter = 0
+            else:
+                self.state = self.STAND_R
+                self.frame_counter = 0
+            if self.rand_val != 0:
+                self.rand_val = 0
+    def handle_frame_rswing(self):
+        self.r_swing_frame = int(self.total_frame) % 11
+        if self.r_swing_frame == 10:
+            if self.dir == 1:
+                self.state = self.STAND_L
+            else:
+                self.state = self.STAND_R
+            if self.rand_val != 0:
+                self.rand_val = 0
+        self.key_timer = int(self.key_timer) % 4
+    def handle_frame_uswing(self):
+        self.u_swing_frame = int(self.total_frame) % 12
+        if self.u_swing_frame == 11:
+            if self.dir == 1:
+                self.state = self.STAND_L
+                self.u_swing_frame = 0
+            else:
+                self.state = self.STAND_R
+                self.u_swing_frame = 0
+            if self.rand_val != 0:
+                self.rand_val = 0
+    def handle_frame_gstand(self):
+        self.g_stand_frame = int(self.total_frame) % 5
+        if self.g_stand_frame == 4:
+            if self.dir == 1:
+                self.state = self.STAND_L
+            else:
+                self.state = self.STAND_R
+            if self.rand_val != 0:
+                self.rand_val = 0
+    def handle_frame_gdown(self):
+        self.g_down_frame = int(self.total_frame) % 5
+        if self.g_down_frame == 4:
+            if self.dir == 1:
+                self.state = self.DOWN_L
+            else:
+                self.state = self.DOWN_R
+            if self.rand_val != 0:
+                self.rand_val = 0
+    def handle_frame_hstand(self):
+        self.h_stand_frame = int(self.total_frame) % 5
+        if self.h_stand_frame == 4:
+            if self.dir == 1:
+                self.state = self.STAND_L
+            else:
+                self.state = self.STAND_R
+            if self.rand_val != 0:
+                self.rand_val = 0
+    def handle_frame_hdown(self):
+        self.h_down_frame = int(self.total_frame) % 5
+        if self.h_down_frame == 4:
+            if self.dir == 1:
+                self.state = self.STAND_L
+            else:
+                self.state = self.STAND_R
+            if self.rand_val != 0:
+                self.rand_val = 0
+    def handle_frame_ccom(self):
+        self.c_common_frame = int(self.total_frame) % 7
+        if self.c_common_frame == 6:
+            if self.dir == 1:
+                self.state = self.STAND_L
+            else:
+                self.state = self.STAND_R
+            if self.rand_val != 0:
+                self.rand_val = 0
+        self.key_timer = int(self.key_timer) % 3
+    def handle_frame_cpro(self):
+        self.c_provoke_frame = int(self.total_frame) % 7
+        if self.c_provoke_frame == 6:
+            if self.dir == 1:
+                self.state = self.STAND_L
+            else:
+                self.state = self.STAND_R
+            if self.rand_val != 0:
+                self.rand_val = 0
+    def handle_frame_win(self):
+        self.win_frame = int(self.total_frame) % 12
+        if self.win_frame == 11:
+            if self.dir == 1:
+                self.state = self.STAND_L
+            else:
+                self.state = self.STAND_R
+    #______________________________________
+
+    # 이미지 출력 함수_____________________
+    def handle_image_stand(self):
+        if self.dir    == 1:
+            self.image_stand_L.clip_draw(self.stand_frame * 121, 0, 121, 250, self.x, self.y)
+        elif self.dir == -1:
+            self.image_stand_R.clip_draw(self.stand_frame * 121, 0, 121, 250, self.x, self.y)
+    def handle_image_walk(self):
+        if self.dir   ==  1:
+            self.image_walk_L.clip_draw(self.walk_frame * 121, 0, 121, 250, self.x, self.y)
+        elif self.dir == -1:
+            self.image_walk_R.clip_draw(self.walk_frame * 121, 0, 121, 250, self.x, self.y)
+    def handle_image_backwalk(self):
+        if self.dir   ==  1:
+            self.image_backwalk_L.clip_draw(self.backwalk_frame * 121, 0, 121, 250, self.x, self.y)
+        elif self.dir == -1:
+            self.image_backwalk_R.clip_draw(self.backwalk_frame * 121, 0, 121, 250, self.x, self.y)
+    def handle_image_run(self):
+        if self.dir == 1:
+            self.image_run_L.clip_draw(self.run_frame * 190, 0, 190, 250, self.x, self.y)
+        elif self.dir == -1:
+            self.image_run_R.clip_draw(self.run_frame * 190, 0, 190, 250,self.x, self.y)
+    def handle_image_down(self):
+        if self.dir == 1:
+            self.image_down_L.clip_draw(self.down_frame * 121, 0, 121, 250, self.x, self.y)
+        elif self.dir == -1:
+            self.image_down_R.clip_draw(self.down_frame * 121, 0, 121, 250, self.x, self.y)
+    def handle_image_jump(self):
+        if self.dir == 1:
+            self.image_jump_L.clip_draw(self.jump_frame * 121, 0, 121, 280, self.x, self.y)
+        elif self.dir == -1:
+            self.image_jump_R.clip_draw(self.jump_frame * 121, 0, 121, 280, self.x, self.y)
+    def handle_image_fall(self):
+        if self.dir == 1:
+            self.image_jump_L.clip_draw((16 - self.jump_frame) * 121, 0, 121, 280, self.x, self.y )
+        elif self.dir == -1:
+            self.image_jump_R.clip_draw((16 - self.jump_frame) * 121, 0, 121, 280, self.x, self.y)
     def handle_image_backstep(self):
-        self.backstep_L.clip_draw(self.backstep_frame * 140, 0, 140, 250, self.x, self.y)
+        if self.dir == 1:
+            self.image_backstep_L.clip_draw(self.backstep_frame * 140, 0, 140, 250, self.x, self.y)
+        elif self.dir == -1:
+            self.image_backstep_R.clip_draw(self.backstep_frame * 140, 0, 140, 250, self.x, self.y)
+    def handle_image_sreg(self):
+        if self.dir == 1:
+            self.image_simple_reg_L.clip_draw(self.s_reg_frame * 210, 0, 210, 250, self.x, self.y)
+        elif self.dir == -1:
+            self.image_simple_reg_R.clip_draw(self.s_reg_frame * 210, 0, 210, 250, self.x, self.y)
+    def handle_image_rswing(self):
+        if self.dir == 1:
+            self.image_round_swing_L.clip_draw(self.r_swing_frame * 600, 0, 600, 320, self.x, self.y)
+        elif self.dir == -1:
+            self.image_round_swing_R.clip_draw(self.r_swing_frame * 600, 0, 600, 320, self.x, self.y)
+    def handle_image_uswing(self):
+        if self.dir == 1:
+            self.image_upper_swing_L.clip_draw(self.u_swing_frame * 700, 0, 700, 500, self.x, self.y)
+        elif self.dir == -1:
+            self.image_upper_swing_R.clip_draw(self.u_swing_frame * 700, 0, 700, 500, self.x, self.y)
+    def handle_image_gstand(self):
+        if self.dir == 1:
+            self.image_gard_stand_L.clip_draw(self.g_stand_frame * 114, 0, 114, 250, self.x, self.y)
+        elif self.dir == -1:
+            self.image_gard_stand_R.clip_draw(self.g_stand_frame * 114, 0, 114, 250, self.x, self.y)
+    def handle_image_gdown(self):
+        if self.dir == 1:
+            self.image_gard_down_L.clip_draw(self.g_down_frame * 112, 0, 112, 250, self.x, self.y)
+        elif self.dir == -1:
+            self.image_gard_down_R.clip_draw(self.g_down_frame * 112, 0, 112, 250, self.x, self.y)
+    def handle_image_hstand(self):
+        if self.dir == 1:
+            self.image_hit_stand_L.clip_draw(self.h_stand_frame * 250, 0, 250, 250, self.x, self.y)
+        elif self.dir == -1:
+            self.image_hit_stand_R.clip_draw(self.h_stand_frame * 250, 0, 250, 250, self.x, self.y)
+    def handle_image_hdown(self):
+        if self.dir == 1:
+            self.image_hit_down_L.clip_draw(self.h_down_frame * 180, 0, 180, 250, self.x, self.y)
+        elif self.dir == -1:
+            self.image_hit_down_R.clip_draw(self.h_down_frame * 180, 0, 180, 250, self.x, self.y)
+    def handle_image_ccom(self):
+        if self.dir == 1:
+            self.image_call_common_L.clip_draw(self.c_common_frame * 200, 0, 200, 280, self.x, self.y)
+        elif self.dir == -1:
+            self.image_call_common_R.clip_draw(self.c_common_frame * 200, 0, 200, 280, self.x, self.y)
+    def handle_image_cpro(self):
+        if self.dir == 1:
+            self.image_call_provoke_L.clip_draw(self.c_provoke_frame * 180, 0, 180, 280, self.x, self.y)
+        elif self.dir == -1:
+            self.image_call_provoke_R.clip_draw(self.c_provoke_frame * 180, 0, 180, 280, self.x, self.y)
+    def handle_image_win(self):
+        if self.dir == 1:
+            self.image_win_L.clip_draw(self.win_frame * 121, 0, 121, 250, self.x, self.y)
+        elif self.dir == -1:
+            self.image_win_R.clip_draw(self.win_frame * 121, 0, 121, 250, self.x, self.y)
+    #______________________________________
 
-    def handle_event(self, event):
-        # KeyDown
-        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_LEFT):
-            if self.y == self.default_y:
-                if self.backstep_timer >= 1.0:
-                    self.frame_ = self.BACKSTEP_L
-                else:
-                    self.frame_ = self.BACKWALK_L
-                self.L_keydown_jump = True
-        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_RIGHT):
-            if self.y == self.default_y:
-                if self.run_timer >= 1.0:
-                    self.frame_ = self.RUN_L
-                else:
-                    self.frame_ = self.WALK_L
-                self.R_keydown_jump = True
-        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_UP):
-            if self.frame_ in (self.STAND_L, self.RUN_L, self.WALK_L, self.BACKWALK_L):
-                self.frame_ = self.JUMP_L
-        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_DOWN):
-            if self.y == self.default_y:
-                self.frame_ = self.DOWN_L
-        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_a):
-            if self.y == self.default_y:
-                if self.attack01_tiemr >= 1.0:
-                    self.frame_ = self.ATTACK02_L
-                else:
-                    self.frame_ = self.ATTACK01_L
-        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):
-            if self.y == self.default_y:
-                self.frame_ = self.ATTACK00_L
-        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_d):
-            if self.y == self.default_y:
-                if self.call_timer >= 1.0:
-                    self.frame_ = self.CALL01_L
-                else:
-                    self.frame_ = self.CALL00_L
-
-        # Key UP
-        if (event.type, event.key) == (SDL_KEYUP, SDLK_LEFT):
-            if self.frame_ in (self.BACKWALK_L, self.BACKSTEP_L):
-                self.frame_ = self.STAND_L
-                self.backstep_frame = 0
-                self.backwalk_frame = 0
-            self.L_keydown_jump = False
-        if (event.type, event.key) == (SDL_KEYUP, SDLK_RIGHT):
-            if self.frame_ in (self.WALK_L, self.RUN_L):
-                self.frame_ = self.STAND_L
-                self.walk_frame = 0
-                self.run_frame = 0
-            self.R_keydown_jump = False
-        if (event.type, event.key) == (SDL_KEYUP, SDLK_DOWN):
-            self.frame_ = self.STAND_L
-            self.down_frame = 0
-
-    # 프레임 갱신 핸들
-    handle_frame = {
-        STAND_L: handle_frame_stand,
-        WALK_L: handle_frame_walk,
-        BACKWALK_L: handle_frame_backwalk,
-        RUN_L: handle_frame_run,
-        DOWN_L: handle_frame_down,
-        WIN_L: handle_frame_win,
-        JUMP_L: handle_frame_jump,
-        BACKSTEP_L: handle_frame_backstep,
-        CALL00_L: handle_frame_call00,
-        CALL01_L: handle_frame_call01,
-        ATTACK00_L: handle_frame_attack00,
-        ATTACK01_L: handle_frame_attack01,
-        ATTACK02_L: handle_frame_attack02
-     }
-
-    # 이미지 출력 핸들
-    image_handle = {
-        STAND_L: handle_image_stand,
-        WALK_L: handle_image_walk,
-        BACKWALK_L: handle_image_backwalk,
-        RUN_L: handle_image_run,
-        DOWN_L: handle_image_down,
-        WIN_L: handle_image_win,
-        JUMP_L: handle_image_jump,
-        BACKSTEP_L: handle_image_backstep,
-        CALL00_L: handle_image_call00,
-        CALL01_L: handle_image_call01,
-        ATTACK00_L: handle_iamge_attack00,
-        ATTACK01_L: handle_image_attack01,
-        ATTACK02_L: handle_image_attack02
+    # 프레임 갱신 핸들__________________________
+    frame_handle = {
+        STAND_L    : handle_frame_stand,
+        STAND_R    : handle_frame_stand,
+        WALK_L     : handle_frame_walk,
+        WALK_R     : handle_frame_walk,
+        BACKWALK_L : handle_frame_backwalk,
+        BACKWALK_R : handle_frame_backwalk,
+        RUN_L      : handle_frame_run,
+        RUN_R      : handle_frame_run,
+        DOWN_L     : handle_frame_down,
+        DOWN_R     : handle_frame_down,
+        JUMP_L     : handle_frame_jump,
+        JUMP_R     : handle_frame_jump,
+        BACKSTEP_L : handle_frame_backstep,
+        BACKSTEP_R : handle_frame_backstep,
+        FALL       : handle_frame_fall,
+        SREG_L     : handle_frame_sreg,
+        SREG_R     : handle_frame_sreg,
+        RSWING_L   : handle_frame_rswing,
+        RSWING_R   : handle_frame_rswing,
+        USWING_L   : handle_frame_uswing,
+        USWING_R   : handle_frame_uswing,
+        GSTAND_L   : handle_frame_gstand,
+        GSTAND_R   : handle_frame_gstand,
+        GDOWN_L    : handle_frame_gdown,
+        GDOWN_R    : handle_frame_gdown,
+        HSTAND_L   : handle_frame_hstand,
+        HSTAND_R   : handle_frame_hstand,
+        HDOWN_L    : handle_frame_hdown,
+        HDOWN_R    : handle_frame_hdown,
+        CCOM_L     : handle_frame_ccom,
+        CCOM_R     : handle_frame_ccom,
+        CPRO_L     : handle_frame_cpro,
+        CPRO_R     : handle_frame_cpro,
+        WIN_L      : handle_frame_win,
+        WIN_R      : handle_frame_win
     }
+    #________________________________________________
 
-    # 속도 계산 핸들
-    def handle_speed(self, frame_time):
-        global  s_walk, s_backwalk, s_run, s_backstep, s_jump
-        s_walk = self.WALK_SPEED_PPS * frame_time
-        s_backwalk = self.BACKWALK_SPEED_PPS * frame_time
-        s_run = self.RUN_SPEED_PPS * frame_time
-        s_backstep = self.BACKSTEP_SPEED_PPS * frame_time
-        s_jump = self.JUMP_SPEED_PPS * frame_time
+    # 이미지 출력 핸들_______________________________
+    image_handle = {
+        STAND_L    : handle_image_stand,
+        STAND_R    : handle_image_stand,
+        WALK_L     : handle_image_walk,
+        WALK_R     : handle_image_walk,
+        BACKWALK_L : handle_image_backwalk,
+        BACKWALK_R : handle_image_backwalk,
+        RUN_L      : handle_image_run,
+        RUN_R      : handle_image_run,
+        DOWN_L     : handle_image_down,
+        DOWN_R     : handle_image_down,
+        JUMP_L     : handle_image_jump,
+        JUMP_R     : handle_image_jump,
+        BACKSTEP_L : handle_image_backstep,
+        BACKSTEP_R : handle_image_backstep,
+        FALL       : handle_image_fall,
+        SREG_L     : handle_image_sreg,
+        SREG_R     : handle_image_sreg,
+        RSWING_L   : handle_image_rswing,
+        RSWING_R   : handle_image_rswing,
+        USWING_L   : handle_image_uswing,
+        USWING_R   : handle_image_uswing,
+        GSTAND_L   : handle_image_gstand,
+        GSTAND_R   : handle_image_gstand,
+        GDOWN_L    : handle_image_gdown,
+        GDOWN_R    : handle_image_gdown,
+        HSTAND_L   : handle_image_hstand,
+        HSTAND_R   : handle_image_hstand,
+        HDOWN_L    : handle_image_hdown,
+        HDOWN_R    : handle_image_hdown,
+        CCOM_L     : handle_image_ccom,
+        CCOM_R     : handle_image_ccom,
+        CPRO_L     : handle_image_cpro,
+        CPRO_R     : handle_image_cpro,
+        WIN_L      : handle_image_win,
+        WIN_R      : handle_image_win
+    }
+    #__________________________________________________
 
-        self.total_frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * frame_time
-        pass
+    # 키입력 함수________________________________________________________________________________
+    def handle_event(self, event):
+        # KeyDown_____________________________________________________
+        if (event.type, event.key) == (SDL_KEYDOWN, SDLK_1):
+            if   self.dir ==  1:    self.dir = -1
+            elif self.dir == -1:    self.dir = 1
+        elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_LEFT):
+            if self.y == self.default_yPos:
+                if   self.dir ==  1:
+                    if self.key_timer < 3.0:
+                        self.state = self.BACKSTEP_L
+                    else:
+                        self.state = self.BACKWALK_L
+                elif self.dir == -1:
+                    if self.key_timer < 3.0:
+                        self.state = self.RUN_R
+                    else:
+                        self.state = self.WALK_R
+            self.jumping_Left_move = True
+        elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_RIGHT):
+            if self.y == self.default_yPos:
+                if   self.dir ==  1:
+                    if self.key_timer < 4.0:
+                        self.state = self.RUN_L
+                    else:
+                        self.state = self.WALK_L
+                elif self.dir == -1:
+                    if self.key_timer < 4.0:
+                        self.state = self.BACKSTEP_R
+                    else:
+                        self.state = self.BACKWALK_R
+            self.jumping_Right_move = True
+        elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_DOWN):
+            if self.y == self.default_yPos:
+                if self.dir == 1:
+                    self.state = self.DOWN_L
+                elif self.dir == -1:
+                    self.state = self.DOWN_R
+        elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_UP):
+            if self.dir == 1:
+                self.state = self.JUMP_L
+            elif self.dir == -1:
+                self.state = self.JUMP_R
+        elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_a):
+            if self.y == self.default_yPos:
+                if self.dir == 1:
+                    self.state = self.SREG_L
+                elif self.dir == -1:
+                    self.state = self.SREG_R
+        elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_s):
+            if self.y == self.default_yPos:
+                if self.dir == 1:
+                    if self.key_timer < 4.0:
+                        self.state = self.USWING_L
+                    else:
+                        self.state = self.RSWING_L
+                elif self.dir == -1:
+                    if self.key_timer < 4.0:
+                        self.state = self.USWING_R
+                    else:
+                        self.state = self.RSWING_R
+        elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_d):
+            if self.dir == 1:
+                if self.key_timer < 3.0:
+                    self.state = self.CPRO_L
+                else:
+                    self.state = self.CCOM_L
+            elif self.dir == -1:
+                if self.key_timer < 3.0:
+                    self.state = self.CPRO_R
+                else:
+                    self.state = self.CCOM_R
+        elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_z):
+            if self.dir == 1:
+                if self.state == self.STAND_L:
+                    self.state = self.GSTAND_L
+                elif self.state == self.DOWN_L:
+                    self.state = self.GDOWN_L
+            else:
+                if self.state == self.STAND_R:
+                    self.state = self.GSTAND_R
+                elif self.state == self.DOWN_R:
+                    self.state = self.GDOWN_R
+        #_________________________________________________________
 
-    # 업데이트
+        # Key UP__________________________________________________
+        if (event.type, event.key) == (SDL_KEYUP, SDLK_LEFT):
+            if self.y == self.default_yPos:
+                if self.dir == 1:
+                    self.state = self.STAND_L
+                elif self.dir == -1:
+                    self.state = self.STAND_R
+            self.jumping_Left_move = False
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_RIGHT):
+            if self.y == self.default_yPos:
+                if self.dir == 1:
+                    self.state = self.STAND_L
+                elif self.dir == -1:
+                    self.state = self.STAND_R
+            self.jumping_Right_move = False
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_DOWN):
+            if self.dir == 1:
+                self.state = self.STAND_L
+            elif self.dir == -1:
+                self.state = self.STAND_R
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_z):
+            if self.dir == 1:
+                if self.state == self.GSTAND_L:
+                    self.state = self.STAND_L
+                elif self.state == self.GDOWN_L:
+                    self.state = self.DOWN_L
+            else:
+                if self.state == self.GSTAND_R:
+                    self.state = self.STAND_R
+                elif self.state == self.GDOWN_R:
+                    self.state = self.DOWN_R
+        #________________________________________________________
+    #__키입력 종료___________________________________________________________________
+
+
+    # 충돌 처리__________________________________________
+    def collision_events(self, enemy):
+        # 때렸을 때
+        if self.state in (self.SREG_L, self.RSWING_L, self.USWING_L):
+            # 페르소나 호출기회 획득
+            if enemy.state in (enemy.STAND_R, enemy.WALK_R, enemy.RUN_R, enemy.BACKSTEP_R, enemy.BACKWALK_R):
+                enemy.state = enemy.HSTAND_R
+            elif enemy.state == enemy.DOWN_R:
+                enemy.state = enemy.HDOWN_R
+            if self.summon_count <= 3:
+                self.summon_count = self.summon_count + 1
+            pass
+        # 맞았을 때 ( 스탠딩 모션 )
+        elif self.state in (self.STAND_L, self.WALK_L, self.RUN_L, self.BACKSTEP_L, self.BACKWALK_L):
+            if enemy.state in (enemy.SREG_R, enemy.RKICK_R, enemy.SFIST_R):
+                self.state = self.HSTAND_L
+                self.HP = self.HP - 10
+        elif self.state == self.DOWN_L:
+            if enemy.state in (enemy.SREG_R, enemy.RKICK_R, enemy.SFIST_R):
+                self.state = self.HDOWN_L
+                self.HP = self.HP - 10
+        # 막았을 때
+        elif self.state in (self.GSTAND_L, self.GDOWN_L):
+            # 체력감소 조금
+            if enemy.state in (enemy.SREG_R, enemy.RKICK_R, enemy.SFIST_R):
+                self.HP = self.HP - 10
+
+        # 때렸을 때
+        if self.state in (self.SREG_R, self.RSWING_R, self.USWING_R):
+            # 페르소나 호출기회 획득
+            if enemy.state in (enemy.STAND_L, enemy.WALK_L, enemy.RUN_L, enemy.BACKSTEP_L, enemy.BACKWALK_L):
+                enemy.state = enemy.HSTAND_L
+            elif enemy.state == enemy.DOWN_L:
+                enemy.state = enemy.HDOWN_L
+            if self.summon_count <= 3:
+                self.summon_count = self.summon_count + 1
+            pass
+        # 맞았을 때 ( 스탠딩 모션 )
+        elif self.state in (self.STAND_R, self.WALK_R, self.RUN_R, self.BACKSTEP_R, self.BACKWALK_R):
+            if enemy.state in (enemy.SREG_R, enemy.RKICK_R, enemy.SFIST_R):
+                self.state = self.HSTAND_R
+                self.HP = self.HP - 10
+        elif self.state == self.DOWN_R:
+            if enemy.state in (enemy.SREG_R, enemy.RKICK_R, enemy.SFIST_R):
+                self.state = self.HDOWN_R
+                self.HP = self.HP - 10
+        # 막았을 때
+        elif self.state in (self.GSTAND_R, self.GDOWN_R):
+            # 체력감소 조금
+            if enemy.state in (enemy.SREG_R, enemy.RKICK_R, enemy.SFIST_R):
+                self.HP = self.HP - 10
+    #__충돌처리 종료______________________________________________
+
+    # AI 패턴____________________________________________________________________
+    # 일정거리를 준다. (self.x 기준으로)
+    # 특정 범위 안에 들어오면 특정 패턴으로 작동
+    # 1. 이동 ( 빽, 앞, 앉기, 점프 )
+    # 2. 공격 ( 심플, 라운드, 페르소나 콜링- 갯수가 남았을때- )
+    # 3. 가드 ( 적이 심하게 가까울때 )
+    def ai_pattern(self, player):
+        if self.dir == 1:
+            if player.x < (self.x + 100):
+                if self.rand_val == 0:
+                    self.rand_val = random.randint(1,8)
+                if   self.rand_val == 1:                                self.state = self.BACKWALK_L
+                elif self.rand_val == 2:                                self.state = self.BACKSTEP_L
+                elif self.rand_val == 3:                                self.state = self.SREG_L
+                elif self.rand_val == 4:                                self.state = self.RSWING_L
+                elif self.rand_val == 5 and self.summon_count != 0:    self.state = self.CCOM_L
+                elif self.rand_val == 6:                                self.state = self.DOWN_L
+                elif self.rand_val == 7:                                self.state = self.GSTAND_L
+                elif self.rand_val == 8 and self.state == self.DOWN_L: self.state = self.GDOWN_L
+            elif player.x < (self.x + 200):
+                if self.rand_val == 0:
+                    self.rand_val = random.randint(1,8)
+                if self.rand_val == 1:                                  self.state = self.BACKWALK_L
+                elif self.rand_val == 2:                                self.state = self.BACKSTEP_L
+                elif self.rand_val == 3:                                self.state = self.SREG_L
+                elif self.rand_val == 4:                                self.state = self.RSWING_L
+                elif self.rand_val == 5 and self.summon_count != 0:     self.state = self.CCOM_L
+                elif self.rand_val == 6:                                self.state = self.DOWN_L
+                elif self.rand_val == 7:                                self.state = self.WALK_L
+                elif self.rand_val == 8:                                self.state = self.RUN_L
+            elif player.x < (self.x + 300):
+                if self.rand_val == 0:
+                    self.rand_val = random.randint(1,8)
+                if self.rand_val == 1:                                  self.state = self.BACKWALK_L
+                elif self.rand_val == 2:                                self.state = self.BACKSTEP_L
+                elif self.rand_val == 3:                                self.state = self.SREG_L
+                elif self.rand_val == 4:                                self.state = self.RSWING_L
+                elif self.rand_val == 5 and self.summon_count != 0:     self.state = self.CCOM_L
+                elif self.rand_val == 6:                                self.state = self.DOWN_L
+                elif self.rand_val == 7:                                self.state = self.WALK_L
+                elif self.rand_val == 8:                                self.state = self.RUN_L
+        # 플레이어의 x 값이 큼
+        elif self.dir == -1:
+            if player.x > (self.x - 100):
+                if self.rand_val == 0:
+                    self.rand_val = random.randint(1,8)
+                if   self.rand_val == 1:                                self.state = self.BACKWALK_R
+                elif self.rand_val == 2:                                self.state = self.BACKSTEP_R
+                elif self.rand_val == 3:                                self.state = self.SREG_R
+                elif self.rand_val == 4:                                self.state = self.RSWING_R
+                elif self.rand_val == 5 and self.summon_count != 0:    self.state = self.CCOM_R
+                elif self.rand_val == 6:                                self.state = self.DOWN_R
+                elif self.rand_val == 7:                                self.state = self.GSTAND_R
+                elif self.rand_val == 8 and self.state == self.DOWN_L: self.state = self.GDOWN_R
+            elif player.x > (self.x - 200):
+                if self.rand_val == 0:
+                    self.rand_val = random.randint(1,8)
+                if   self.rand_val == 1:                                  self.state = self.BACKWALK_R
+                elif self.rand_val == 2:                                self.state = self.BACKSTEP_R
+                elif self.rand_val == 3:                                self.state = self.SREG_R
+                elif self.rand_val == 4:                                self.state = self.RSWING_R
+                elif self.rand_val == 5 and self.summon_count != 0:     self.state = self.CCOM_R
+                elif self.rand_val == 6:                                self.state = self.DOWN_R
+                elif self.rand_val == 7:                                self.state = self.WALK_R
+                elif self.rand_val == 8:                                self.state = self.RUN_R
+            elif player.x > (self.x - 300):
+                if self.rand_val == 0:
+                    self.rand_val = random.randint(1,8)
+                if   self.rand_val == 1:                                  self.state = self.BACKWALK_R
+                elif self.rand_val == 2:                                self.state = self.BACKSTEP_R
+                elif self.rand_val == 3:                                self.state = self.SREG_R
+                elif self.rand_val == 4:                                self.state = self.RSWING_R
+                elif self.rand_val == 5 and self.summon_count != 0:     self.state = self.CCOM_R
+                elif self.rand_val == 6:                                self.state = self.DOWN_R
+                elif self.rand_val == 7:                                self.state = self.WALK_R
+                elif self.rand_val == 8:                                self.state = self.RUN_R
+
+    #____________________________________________________________________________
+
+    #__Game Logic_________________________________________
     def update(self, frame_time):
-        self.handle_speed(frame_time)
-        self.handle_frame[self.frame_](self)
+        def clamp(minimum, x, maximum):
+            return max(minimum, min(x,maximum))
 
-    # 초기화
+        self.handle_speed(frame_time)
+        self.frame_handle[self.state](self)
+
+
+
+        self.x = clamp(80, self.x, 1200)
+        self.y = clamp(180, self.y, 595)
+    #__update End__________________________________________
+
+    # 초기화 함수___________________________________________________________________
     def __init__(self):
         # 캐릭터 피봇 좌표
-        self.x = 320
+        self.x = 820
         self.y = 180
         self.dir = 1
+        self.HP = 1000
+        self.summon_count = 3
 
-        # 프레임 변수
-        self.total_frame = 0
-        self.stand_frame = 0
-        self.walk_frame = 0
+        # 프레임 변수__________
+        self.run_frame      = 0
+        self.walk_frame     = 0
+        self.down_frame     = 0
+        self.jump_frame     = 0
+        self.stand_frame    = 0
+        self.total_frame    = 0
+        self.s_reg_frame    = 0
+        self.g_down_frame   = 0
+        self.r_swing_frame  = 0
+        self.u_swing_frame  = 0
+        self.g_stand_frame  = 0
         self.backwalk_frame = 0
-        self.run_frame = 0
-        self.jump_frame = 0
-        self.down_frame = 0
-        self.win_frame = 0
         self.backstep_frame = 0
-        self.call00_frame = 0
-        self.call01_frame = 0
-        self.attack00_frame = 0
-        self.attack01_frame = 0
-        self.attack02_frame = 0
-        self.attack02_yframe = 0
+        self.h_stand_frame  = 0
+        self.h_down_frame   = 0
+        self.c_common_frame = 0
+        self.c_provoke_frame= 0
+        self.win_frame      = 0
+        #______________________
 
-        # 상태 체크
-        self.frame_ = self.STAND_L
-        self.jump_count = 0
-        self.default_y = 180
-        self.run_count = 11
+        # 상태 체크______________
+        self.state = self.STAND_L
+        self.key_timer = 0
+        self.default_yPos = 180
+        self.jumping_Left_move = False
+        self.jumping_Right_move = False
+        self.rand_val = 0
+        #________________________
 
-        # 키 눌린거 확인
-        self.L_keydown_jump  = False
-        self.R_keydown_jump = False
-
-        # 더블 입력 함수
-        self.attack01_tiemr = 0.0
-        self.run_timer = 0.0
-        self.call_timer = 0.0
-        self.backstep_timer = 0.0
-
-        # 이미지 파일
+        # 이미지 파일______________________________________________
             # 왼쪽 파일
-        self.stand_L = load_image('Marie_Stand_L.png')
-        self.walk_L = load_image('Marie_Walking_L.png')
-        self.backwalk_L = load_image('Marie_BackWalking_L.png')
-        self.run_L = load_image('Marie_Run_L.png')
-        self.backstep_L = load_image('Marie_BackStep_L.png')
-        self.jump_L = load_image('Marie_Jump_L.png')
-        self.down_L = load_image('Marie_Down_L.png')
-        self.win_L = load_image('Marie_Wins_L.png')
-
-                # 공격
-        self.attack00_L = load_image('Marie_Attack00_L.png')
-        self.attack01_L = load_image('Marie_Attack01_L.png')
-        self.attack02_L = load_image('Marie_Attack02_L.png')
-        self.call00_L = load_image('Marie_Call00_L.png')
-        self.call01_L = load_image('Marie_Call01_L.png')
+        self.image_run_L          = load_image('Marie_Run_L.png')
+        self.image_walk_L         = load_image('Marie_Walk_L.png')
+        self.image_down_L         = load_image('Marie_Down_L.png')
+        self.image_jump_L         = load_image('Marie_Jump_L.png')
+        self.image_stand_L        = load_image('Marie_Stand_L.png')
+        self.image_backwalk_L     = load_image('Marie_Backwalk_L.png')
+        self.image_backstep_L     = load_image("Marie_Backstep_L.png")
+        self.image_simple_reg_L   = load_image('Marie_Simple_Reg_L.png')
+        self.image_round_swing_L  = load_image('Marie_Round_Swing_L.png')
+        self.image_upper_swing_L  = load_image('Marie_Upper_Swing_L.png')
+        self.image_gard_stand_L   = load_image('Marie_Gard_Stand_L.png')
+        self.image_gard_down_L    = load_image('Marie_Gard_Down_L.png')
+        self.image_hit_stand_L    = load_image('Marie_Hit_Stand_L.png')
+        self.image_hit_down_L     = load_image('Marie_Hit_Down_L.png')
+        self.image_call_common_L  = load_image('Marie_Call_Common_L.png')
+        self.image_call_provoke_L = load_image('Marie_Call_Provoke_L.png')
+        self.image_win_L          = load_image('Marie_Wins_L.png')
 
             # 오른쪽 파일
-        #self.stand_R = load_image('Marie_Stand_R.png')
-        #self.walk_R = load_image('Marie_Walking_R.png')
-        #self.backwalk_R = load_image('Marie_BackWalking_R.png')
-        #self.run_R = load_image('Marie_Run_R.png')
-        #self.backstep_R = load_image('Marie_BackStep_R.png')
-        #self.jump_R = load_image('Marie_Jump_R.png')
-        #self.down_R = load_image('Marie_Down_R.png')
-        #self.win_R = load_image('Marie_Wins_R.png')
+        self.image_run_R          = load_image('Marie_Run_R.png')
+        self.image_walk_R         = load_image('Marie_Walk_R.png')
+        self.image_down_R         = load_image('Marie_Down_R.png')
+        self.image_jump_R         = load_image('Marie_Jump_R.png')
+        self.image_stand_R        = load_image('Marie_Stand_R.png')
+        self.image_backwalk_R     = load_image('Marie_Backwalk_R.png')
+        self.image_backstep_R     = load_image("Marie_Backstep_R.png")
+        self.image_simple_reg_R   = load_image('Marie_Simple_Reg_R.png')
+        self.image_round_swing_R  = load_image('Marie_Round_Swing_R.png')
+        self.image_upper_swing_R  = load_image('Marie_Upper_Swing_R.png')
+        self.image_gard_stand_R   = load_image('Marie_Gard_Stand_R.png')
+        self.image_gard_down_R    = load_image('Marie_Gard_Down_R.png')
+        self.image_hit_stand_R    = load_image('Marie_Hit_Stand_R.png')
+        self.image_hit_down_R     = load_image('Marie_Hit_Down_R.png')
+        self.image_call_common_R  = load_image('Marie_Call_Common_R.png')
+        self.image_call_provoke_R = load_image('Marie_Call_Provoke_R.png')
+        self.image_win_R          = load_image('Marie_Wins_R.png')
+    #___init End___________________________________________________________________________________
 
-                #공격
-        #self.attack00_R = load_image('Marie_Attack00_R.png')
-        #self.attack01_R = load_image('Marie_Attack01_R.png')
-        #self.attack02_R = load_image('Marie_Attack02_R.png')
-        #self.call00_R = load_image('Marie_Call00_R.png')
-        #self.call01_R = load_image('Marie_Call01_R.png')
-
-
+    # 랜더링_______________________________________
     def draw(self):
-        self.image_handle[self.frame_](self)
-        self.draw_bb()
+        self.image_handle[self.state](self)
+        #self.draw_bb()
+        #self.draw_ai_box()
+    #draw End______________________________________
 
+    # 충돌 범위_____________________________________________________________________________________________________________________________________________________
     def get_bb(self):
-        if (self.frame_ == self.STAND_L):
-            return self.x, self.y - (self.stand_L.h/2), self.x + (self.stand_L.w/10)/4, self.y + (self.stand_L.h/2)
-        elif (self.frame_ == self.WALK_L):
-            return self.x, self.y - (self.walk_L.h/2), self.x + (self.walk_L.w/8)/4, self.y + (self.walk_L.h/2)
-        elif (self.frame_ == self.BACKWALK_L):
-            return self.x, self.y - (self.backwalk_L.h/2), self.x + (self.backwalk_L.w/12)/4, self.y + (self.backwalk_L.h/2)
-        elif (self.frame_ == self.RUN_L):
-            return self.x, self.y - (self.run_L.h/2), self.x + (self.run_L.w/12)/4, self.y + (self.run_L.h/2)
-        elif (self.frame_ == self.DOWN_L):
-            return self.x, self.y - (self.down_L.h/2), self.x + (self.down_L.w/10)/4, self.y + (self.down_L.h/2)/4
-        elif (self.frame_ == self.WIN_L):
-            return self.x, self.y - (self.win_L.h/2), self.x + (self.win_L.w/8)/4, self.y + (self.win_L.h/2)
-        elif (self.frame_ == self.JUMP_L):
-            return self.x, self.y - (self.jump_L.h/2), self.x + (self.jump_L.w/8)/4, self.y + (self.jump_L.h/2)
-        elif (self.frame_ == self.BACKSTEP_L):
-            return self.x, self.y - (self.backstep_L.h/2), self.x + (self.backstep_L.w/6)/4, self.y + (self.backstep_L.h/2)
-        elif (self.frame_ == self.ATTACK00_L):
-            return self.x, self.y - (self.attack00_L.h/2), self.x + (self.attack00_L.w/8)/2, self.y + (self.attack00_L.h/2)
-        elif (self.frame_ == self.ATTACK01_L):
-            return self.x, self.y - (self.attack01_L.h/2)/2, self.x + (self.attack01_L.w/10)/3, self.y + (self.attack01_L.h/3)
-        elif (self.frame_ == self.ATTACK02_L):
-            return self.x, self.y - (self.attack02_L.h/2)/2, self.x + (self.attack02_L.w/12)/2, self.y + (self.attack02_L.h/3)
-        elif (self.frame_ == self.CALL00_L):
-            return self.x, self.y - (self.call00_L.h/2), self.x + (self.call00_L.w/6)/4, self.y + (self.call00_L.h/2)
-        elif (self.frame_ == self.CALL01_L):
-            return self.x, self.y - (self.call01_L.h/2), self.x + (self.call01_L.w/6)/4, self.y + (self.call01_L.h/2)
-        pass
+        if self.state == self.STAND_L:
+            return self.x, self.y - (self.image_stand_L.h / 2), self.x + (self.image_stand_L.w / 5) / 4, self.y + (self.image_stand_L.h/2)
+        elif self.state == self.WALK_L:
+            return self.x, self.y - (self.image_walk_L.h / 2), self.x + (self.image_walk_L.w / 5) /4, self.y + (self.image_walk_L.h / 2)
+        elif self.state == self.RUN_L:
+            return self.x, self.y - (self.image_run_L.h / 2), self.x + (self.image_run_L.w / 5) / 4, self.y + (self.image_run_L.h / 2)
+        elif self.state == self.JUMP_L:
+            return self.x, self.y - (self.image_jump_L.h / 2), self.x + (self.image_jump_L.w / 5) / 4, self.y + (self.image_jump_L.h / 2)
+        elif self.state == self.FALL:
+            return self.x - (self.image_jump_L.w / 5) / 4, self.y - (self.image_jump_L.h / 2), self.x + (self.image_jump_L.w / 5) / 4, self.y + (self.image_jump_L.h / 2)
+        elif self.state == self.DOWN_L:
+            return self.x, self.y - (self.image_down_L.h / 2), self.x + (self.image_down_L.w / 5) / 4, self.y + (self.image_down_L.h / 2)
+        elif self.state == self.BACKWALK_L:
+            return self.x, self.y - (self.image_backwalk_L.h / 2), self.x + (self.image_backwalk_L.w / 5) / 4, self.y + (self.image_backwalk_L.h / 2)
+        elif self.state == self.BACKSTEP_L:
+            return self.x, self.y - (self.image_backstep_L.h / 2), self.x + (self.image_backstep_L.w / 5) / 4, self.y + (self.image_backstep_L.h / 2)
+        elif self.state == self.SREG_L:
+            return self.x, self.y - (self.image_simple_reg_L.h / 2), self.x + (self.image_simple_reg_L.w / 5) / 4, self.y + (self.image_simple_reg_L.h / 2)
+        elif self.state == self.RSWING_L:
+            return self.x, self.y - (self.image_round_swing_L.h / 2), self.x + (self.image_round_swing_L.w / 5) / 4, self.y + (self.image_round_swing_L.h / 2)
+        elif self.state == self.USWING_L:
+            return self.x, self.y - (self.image_upper_swing_L.h / 2), self.x + (self.image_upper_swing_L.w / 5) / 4, self.y + (self.image_upper_swing_L.h / 2)
+        elif self.state == self.GSTAND_L:
+            return self.x, self.y - (self.image_gard_stand_L.h / 2), self.x + (self.image_gard_stand_L.w / 5) / 4, self.y + (self.image_gard_stand_L.h / 2)
+        elif self.state == self.GDOWN_L:
+            return self.x, self.y - (self.image_gard_down_L.h / 2), self.x + (self.image_gard_down_L.w / 5) / 4, self.y + (self.image_gard_down_L.h / 2)
+        elif self.state == self.HSTAND_L:
+            return self.x, self.y - (self.image_hit_stand_L.h / 2), self.x + (self.image_hit_stand_L.w / 5) / 4, self.y + (self.image_hit_stand_L.h / 2)
+        elif self.state == self.HDOWN_L:
+            return self.x, self.y - (self.image_hit_down_L.h / 2), self.x + (self.image_hit_down_L.w / 5) / 4, self.y + (self.image_hit_down_L.h / 2)
+        elif self.state == self.CCOM_L:
+            return self.x, self.y - (self.image_call_common_L.h / 2), self.x + (self.image_call_common_L.w / 5) / 4, self.y + (self.image_call_common_L.h / 2)
+        elif self.state == self.CPRO_L:
+            return self.x, self.y - (self.image_call_provoke_L.h / 2), self.x + (self.image_call_provoke_L.w / 5) / 4, self.y + (self.image_call_provoke_L.h / 2)
+        elif self.state == self.WIN_L:
+            return self.x, self.y - (self.image_win_L.h / 2), self.x + (self.image_win_L.w / 5) / 4, self.y + (self.image_win_L.h / 2)
+        elif self.state == self.STAND_R:
+            return self.x - (self.image_stand_R.w / 5) / 4, self.y - (self.image_stand_R.h/2), self.x, self.y + (self.image_stand_R.h / 2)
+        elif self.state == self.WALK_R:
+            return self.x - (self.image_walk_R.w / 5) /4, self.y - (self.image_walk_R.h / 2), self.x , self.y + (self.image_walk_R.h / 2)
+        elif self.state == self.RUN_R:
+            return self.x - (self.image_run_R.w / 5) / 4, self.y - (self.image_run_R.h / 2), self.x , self.y + (self.image_run_R.h / 2)
+        elif self.state == self.JUMP_R:
+            return self.x - (self.image_jump_R.w / 5) / 4, self.y - (self.image_jump_R.h / 2), self.x, self.y + (self.image_jump_R.h / 2)
+        elif self.state == self.DOWN_R:
+            return self.x - (self.image_down_R.w / 5) / 4, self.y - (self.image_down_R.h / 2), self.x, self.y + (self.image_down_R.h / 2)
+        elif self.state == self.BACKWALK_R:
+            return self.x - (self.image_backwalk_R.w / 5) / 4, self.y - (self.image_backwalk_R.h / 2), self.x , self.y + (self.image_backwalk_R.h / 2)
+        elif self.state == self.BACKSTEP_R:
+            return self.x - (self.image_backstep_R.w / 5) / 4, self.y - (self.image_backstep_R.h / 2), self.x , self.y + (self.image_backstep_R.h / 2)
+        elif self.state == self.SREG_R:
+            return self.x - (self.image_simple_reg_R.w / 5) / 4, self.y - (self.image_simple_reg_R.h / 2), self.x , self.y + (self.image_simple_reg_R.h / 2)
+        elif self.state == self.RSWING_R:
+            return self.x - (self.image_round_swing_R.w / 5) / 4, self.y - (self.image_round_swing_R.h / 2), self.x, self.y + (self.image_round_swing_R.h / 2)
+        elif self.state == self.USWING_R:
+            return self.x - (self.image_upper_swing_R.w / 5) / 4, self.y - (self.image_upper_swing_R.h / 2), self.x, self.y + (self.image_upper_swing_R.h / 2)
+        elif self.state == self.GSTAND_R:
+            return self.x - (self.image_gard_stand_R.w / 5) / 4, self.y - (self.image_gard_stand_R.h / 2), self.x, self.y + (self.image_gard_stand_R.h / 2)
+        elif self.state == self.GDOWN_R:
+            return self.x - (self.image_gard_down_R.w / 5) / 4, self.y - (self.image_gard_down_R.h / 2), self.x, self.y + (self.image_gard_down_R.h / 2)
+        elif self.state == self.HSTAND_R:
+            return self.x - (self.image_hit_stand_R.w / 5) / 4, self.y - (self.image_hit_stand_R.h / 2), self.x , self.y + (self.image_hit_stand_R.h / 2)
+        elif self.state == self.HDOWN_R:
+            return self.x - (self.image_hit_down_R.w / 5) / 4, self.y - (self.image_hit_down_R.h / 2), self.x, self.y + (self.image_hit_down_R.h / 2)
+        elif self.state == self.CCOM_R:
+            return self.x - (self.image_call_common_R.w / 5) / 4, self.y - (self.image_call_common_R.h / 2), self.x , self.y + (self.image_call_common_R.h / 2)
+        elif self.state == self.CPRO_R:
+            return self.x - (self.image_call_provoke_R.w / 5) / 4, self.y - (self.image_call_provoke_R.h / 2), self.x, self.y + (self.image_call_provoke_R.h / 2)
+        elif self.state == self.WIN_R:
+            return self.x - (self.image_win_R.w / 5) / 4, self.y - (self.image_win_R.h / 2), self.x , self.y + (self.image_win_R.h / 2)
+    # __get_bb End_______________________________________________________________________________________________________________________________________________________
 
+    # 충돌 박스 그리기_________________
     def draw_bb(self):
         draw_rectangle(*self.get_bb())
+    #___draw_bb_________________________
+
+    def draw_ai_box(self):
+        if self.dir == 1:
+            draw_rectangle(self.x, self.y - 90, self.x + 300, self.y)
+        elif self.dir == -1:
+            draw_rectangle(self.x - 300, self.y - 90, self.x, self.y)

@@ -3,11 +3,12 @@ os.chdir('D:/Job/2 - 2/2DGP/Project_Battle Arena/SunE_Repository/Battle_Arena/As
 
 from pico2d import *
 import game_framework
-import title_state
+import Chie
 import Marie
-import KaguyaHime
+import gameover_state
+import select_state
 
-name = "MainState"
+name = "Test_Character"
 
 class BackGround:
     def __init__(self):
@@ -17,21 +18,35 @@ class BackGround:
         self.image.draw(640,360)
     pass
 
+s_player, s_com = 0 , 0
+
 def enter():
-    global player, p_persona
+    global data
+    global s_player, s_com
     global background
+    global player, com
     global frame_time
-    global com
 
-    player = Marie.Marie()
-    p_persona = KaguyaHime.Kaguya()
+    f = open('select_data.txt', 'r')
+    data = json.load(f)
+    f.close()
 
+    if data["s_player"] == 1:
+        player = Chie.Chie()
+        com = Marie.Marie()
+    elif data["s_player"] == 2:
+        player = Marie.Marie()
+        com = Chie.Chie()
 
-    com = Marie.Marie()
+    print(data)
 
-    com.x, com.y = 800, 180
-
+    #player = Chie.Chie()
+    #com    = Marie.Marie()
     background = BackGround()
+
+    player.x = 320
+    player.y = 180
+    com.dir = -1
     pass
 
 def exit():
@@ -43,16 +58,24 @@ def pause():
 def resume():
     pass
 
+def collide(a, b):
+    left_a, bottom_a, right_a, top_a = a.get_bb()
+    left_b, bottom_b, right_b, top_b = b.get_bb()
+
+    if left_a > right_b: return False
+    if right_a < left_b: return False
+    if top_a < bottom_b: return False
+    if bottom_a > top_b: return False
+    return True
+
 def handle_events():
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
             game_framework.quit()
-        elif (event.type, event.key) == (SDL_KEYDOWN ,SDLK_ESCAPE):
-                game_framework.change_state(title_state)
         else:
             player.handle_event(event)
-            p_persona.handle_event(event)
+            pass
 
 current_time = get_time()
 
@@ -68,18 +91,29 @@ def update():
     handle_events()
     player.update(frame_time)
     com.update(frame_time)
-    p_persona.update(frame_time)
-    p_persona.x = player.x
-    p_persona.y = player.y + 100
+    com.ai_pattern(player)
 
-    #delay(0.045)
-    pass
+    if player.x > com.x:
+        player.dir = -1
+        com.dir = 1
+    else:
+        player.dir = 1
+        com.dir = -1
 
+    if player.HP <= 0:
+        game_framework.change_state(gameover_state)
+    elif com.HP <= 0:
+        game_framework.change_state(gameover_state)
+
+    if collide(player, com):
+        player.collision_events(com)
+        com.collision_events(player)
 
 def draw():
     clear_canvas()
     background.draw()
-    p_persona.draw()
     player.draw()
     com.draw()
     update_canvas()
+
+

@@ -15,7 +15,6 @@ def enter():
     global image
     image = load_image('WarpLog_1280.png')
 
-
 def exit():
     global image
     del(image)
